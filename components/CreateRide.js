@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
-const CreateRide = ({ onBack }) => {
+const CreateRide = ({ navigation }) => { // Use navigation prop instead of onBack
   const [source, setSource] = useState('');
   const [destination, setDestination] = useState('');
   const [date, setDate] = useState(new Date());
@@ -23,7 +23,7 @@ const CreateRide = ({ onBack }) => {
     };
     console.log('Ride Details:', rideDetails);
     alert('Ride created successfully!');
-    onBack();
+    navigation.goBack(); // Use navigation.goBack() instead of onBack()
   };
 
   const onDateChange = (event, selectedDate) => {
@@ -44,22 +44,27 @@ const CreateRide = ({ onBack }) => {
     <View style={styles.container}>
       <Text style={styles.title}>Create a Ride</Text>
 
+      {/* Source Input */}
       <TextInput
         style={styles.input}
         placeholder="Source"
+        placeholderTextColor="#999" // Set placeholder text color
         value={source}
         onChangeText={setSource}
       />
+
+      {/* Destination Input */}
       <TextInput
         style={styles.input}
         placeholder="Destination"
+        placeholderTextColor="#999" // Set placeholder text color
         value={destination}
         onChangeText={setDestination}
       />
 
       {/* Date Picker */}
       <TouchableOpacity style={styles.input} onPress={() => setShowDatePicker(true)}>
-        <Text>{date.toLocaleDateString()}</Text>
+        <Text style={styles.inputText}>{date.toLocaleDateString()}</Text>
       </TouchableOpacity>
       {showDatePicker && (
         <DateTimePicker
@@ -72,7 +77,7 @@ const CreateRide = ({ onBack }) => {
 
       {/* Time Picker */}
       <TouchableOpacity style={styles.input} onPress={() => setShowTimePicker(true)}>
-        <Text>{time.toLocaleTimeString()}</Text>
+        <Text style={styles.inputText}>{time.toLocaleTimeString()}</Text>
       </TouchableOpacity>
       {showTimePicker && (
         <DateTimePicker
@@ -83,26 +88,33 @@ const CreateRide = ({ onBack }) => {
         />
       )}
 
+      {/* Max Capacity Input */}
       <TextInput
         style={styles.input}
         placeholder="Max Cab Capacity"
+        placeholderTextColor="#999" // Set placeholder text color
         value={maxCapacity}
         onChangeText={setMaxCapacity}
         keyboardType="numeric"
       />
+
+      {/* Total Fare Input */}
       <TextInput
         style={styles.input}
         placeholder="Total Cab Fare"
+        placeholderTextColor="#999" // Set placeholder text color
         value={totalFare}
         onChangeText={setTotalFare}
         keyboardType="numeric"
       />
 
+      {/* Create Ride Button */}
       <TouchableOpacity style={styles.button} onPress={handleSubmit}>
         <Text style={styles.buttonText}>Create Ride</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.backButton} onPress={onBack}>
+      {/* Back to Dashboard Button */}
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
         <Text style={styles.backButtonText}>Back to Dashboard</Text>
       </TouchableOpacity>
     </View>
@@ -132,6 +144,9 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 20,
     justifyContent: 'center',
+  },
+  inputText: {
+    color: '#000', // Set text color for date and time picker text
   },
   button: {
     width: '80%',
