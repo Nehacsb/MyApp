@@ -1,11 +1,15 @@
 import React from 'react';
-import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
-// import { MaterialIcons } from '@expo/vector-icons'; // For icons
+import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-export default function App() {
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import CreateRide from './components/CreateRide';
+
+const Stack = createStackNavigator();
+
+function HomeScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => alert('Profile clicked')}>
           <MaterialIcons name="account-circle" size={35} color="#3674B5" />
@@ -16,9 +20,8 @@ export default function App() {
         </TouchableOpacity>
       </View>
 
-      {/* Body */}
       <View style={styles.body}>
-        <TouchableOpacity style={styles.card}>
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('CreateRide')}>
           <MaterialIcons name="add-circle" size={50} color="#3674B5" />
           <Text style={styles.cardText}>Create a Ride</Text>
         </TouchableOpacity>
@@ -42,6 +45,17 @@ export default function App() {
   );
 }
 
+export default function App() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="CreateRide" component={CreateRide} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -60,7 +74,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     color: '#3674B5',
     fontSize: 32,
-    fontWeight: 800,
+    fontWeight: '800',
     fontFamily: 'Poppins',
   },
   body: {
