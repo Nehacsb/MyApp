@@ -1,3 +1,4 @@
+import axios from "axios";
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -12,19 +13,38 @@ const CreateRide = ({ navigation }) => { // Use navigation prop instead of onBac
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const rideDetails = {
       source,
       destination,
       date: date.toLocaleDateString(),
       time: time.toLocaleTimeString(),
-      maxCapacity,
-      totalFare,
+      maxCapacity: parseInt(maxCapacity),
+      totalFare: parseFloat(totalFare),
     };
-    console.log('Ride Details:', rideDetails);
-    alert('Ride created successfully!');
-    navigation.goBack(); // Use navigation.goBack() instead of onBack()
+  
+    console.log("📌 Posting ride details:", rideDetails); // Log before posting
+   
+  
+    try {
+      const response = await axios.post("http://172.26.26.237:5000/api/rides", rideDetails);
+      console.log("✅ Server response:", response.data); // Log server response
+  
+      alert(response.data.message);
+      navigation.goBack();
+    } catch (error) {
+      console.error("❌ Axios Error:", error.message);
+      if (error.response) {
+        console.error("📌 Response data:", error.response.data);
+      } else if (error.request) {
+        console.error("📌 No response received:", error.request);
+      } else {
+        console.error("📌 Error setting up request:", error.message);
+      }
+    }
   };
+  
+  
 
   const onDateChange = (event, selectedDate) => {
     setShowDatePicker(Platform.OS === 'ios'); // Keep the picker open on iOS
