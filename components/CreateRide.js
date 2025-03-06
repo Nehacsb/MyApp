@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
-const CreateRide = ({ navigation }) => { // Use navigation prop instead of onBack
+const CreateRide = ({ onBack }) => { // Use navigation prop instead of onBack
   const [source, setSource] = useState('');
   const [destination, setDestination] = useState('');
   const [date, setDate] = useState(new Date());
@@ -25,11 +25,10 @@ const CreateRide = ({ navigation }) => { // Use navigation prop instead of onBac
   
     console.log("📌 Posting ride details:", rideDetails); // Log before posting
    
-  
+
     try {
-      const response = await axios.post("http://172.26.26.237:5000/api/rides", rideDetails);
-      console.log("✅ Server response:", response.data); // Log server response
-  
+      const response = await axios.post("https://172.28.6.142:5000/api/rides", rideDetails);
+      console.log("✅ Server response:", response.data); // Log server response  
       alert(response.data.message);
       navigation.goBack();
     } catch (error) {
@@ -42,6 +41,7 @@ const CreateRide = ({ navigation }) => { // Use navigation prop instead of onBac
         console.error("📌 Error setting up request:", error.message);
       }
     }
+    onBack();
   };
   
   
@@ -64,27 +64,24 @@ const CreateRide = ({ navigation }) => { // Use navigation prop instead of onBac
     <View style={styles.container}>
       <Text style={styles.title}>Create a Ride</Text>
 
-      {/* Source Input */}
       <TextInput
         style={styles.input}
-        placeholder="Source"
-        placeholderTextColor="#999" // Set placeholder text color
+        placeholder="From"
+        placeholderTextColor="#999"
         value={source}
         onChangeText={setSource}
       />
-
-      {/* Destination Input */}
       <TextInput
         style={styles.input}
-        placeholder="Destination"
-        placeholderTextColor="#999" // Set placeholder text color
+        placeholder="To"
+        placeholderTextColor="#999"
         value={destination}
         onChangeText={setDestination}
       />
 
       {/* Date Picker */}
       <TouchableOpacity style={styles.input} onPress={() => setShowDatePicker(true)}>
-        <Text style={styles.inputText}>{date.toLocaleDateString()}</Text>
+        <Text>{date.toLocaleDateString()}</Text>
       </TouchableOpacity>
       {showDatePicker && (
         <DateTimePicker
@@ -97,7 +94,7 @@ const CreateRide = ({ navigation }) => { // Use navigation prop instead of onBac
 
       {/* Time Picker */}
       <TouchableOpacity style={styles.input} onPress={() => setShowTimePicker(true)}>
-        <Text style={styles.inputText}>{time.toLocaleTimeString()}</Text>
+        <Text>{time.toLocaleTimeString()}</Text>
       </TouchableOpacity>
       {showTimePicker && (
         <DateTimePicker
@@ -108,33 +105,28 @@ const CreateRide = ({ navigation }) => { // Use navigation prop instead of onBac
         />
       )}
 
-      {/* Max Capacity Input */}
       <TextInput
         style={styles.input}
         placeholder="Max Cab Capacity"
-        placeholderTextColor="#999" // Set placeholder text color
+        placeholderTextColor="#999"
         value={maxCapacity}
         onChangeText={setMaxCapacity}
         keyboardType="numeric"
       />
-
-      {/* Total Fare Input */}
       <TextInput
         style={styles.input}
         placeholder="Total Cab Fare"
-        placeholderTextColor="#999" // Set placeholder text color
+        placeholderTextColor="#999"
         value={totalFare}
         onChangeText={setTotalFare}
         keyboardType="numeric"
       />
 
-      {/* Create Ride Button */}
       <TouchableOpacity style={styles.button} onPress={handleSubmit}>
         <Text style={styles.buttonText}>Create Ride</Text>
       </TouchableOpacity>
 
-      {/* Back to Dashboard Button */}
-      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+      <TouchableOpacity style={styles.backButton} onPress={onBack}>
         <Text style={styles.backButtonText}>Back to Dashboard</Text>
       </TouchableOpacity>
     </View>
@@ -147,38 +139,35 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#FBFBFB',
+    backgroundColor: '#F7F7F7',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#3674B5',
+    color: '#000',
     marginBottom: 20,
   },
   input: {
     width: '80%',
     height: 50,
-    borderColor: '#3674B5',
+    borderColor: '#000',
     borderWidth: 1,
     borderRadius: 10,
     padding: 10,
     marginBottom: 20,
     justifyContent: 'center',
   },
-  inputText: {
-    color: '#000', // Set text color for date and time picker text
-  },
   button: {
     width: '80%',
     height: 50,
-    backgroundColor: '#3674B5',
+    backgroundColor: '#FFB22C',
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
   },
   buttonText: {
-    color: '#fff',
+    color: '#000',
     fontSize: 18,
     fontWeight: 'bold',
   },
@@ -186,7 +175,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   backButtonText: {
-    color: '#3674B5',
+    color: '#000',
     fontSize: 16,
   },
 });
