@@ -1,66 +1,66 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useContext } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import axios from 'axios';
+import { AuthContext } from '../context/AuthContext';
 
 const MyRides = ({ onBack }) => {
-  const [upcomingRides, setUpcomingRides] = useState([
-    {
-      id: '1',
-      start: 'Delhi',
-      destination: 'IIT Ropar',
-      date: '22/03/2025',
-      time: '4:30 PM',
-      seatsLeft: 0,
-      fare: 800,
-      createdBy: 'Kamakshi Gupta',
-      status: 'Confirmed',
-    },
-    {
-      id: '2',
-      start: 'Chandigarh',
-      destination: 'Delhi',
-      date: '15/03/2025',
-      time: '06:30 PM',
-      seatsLeft: 1,
-      fare: 500,
-      createdBy: 'Rahul Sharma',
-      status: 'Pending',
-    },
-    {
-      
-      id: '3',
-      start: 'IIT Ropar',
-      destination: 'Chandigarh',
-      date: '10/03/2025',
-      time: '10:00 AM',
-      seatsLeft: 2,
-      fare: 200,
-      createdBy: 'You',
-      status: 'Confirmed',
-    },
-    {
-      id: '4',
-      start: 'Delhi',
-      destination: 'Jaipur',
-      date: '20/03/2025',
-      time: '12:00 PM',
-      seatsLeft: 0,
-      fare: 400,
-      createdBy: 'Priya Verma',
-      status: 'Cancelled/Rejected',
-    },
-    {
-      id: '5',
-      start: 'Jaipur',
-      destination: 'Delhi',
-      date: '31/03/2025',
-      time: '2:30 PM',
-      seatsLeft: 0,
-      fare: 1200,
-      createdBy: 'Sanat Gupta',
-      status: 'Pending',
-    },
-  ]);
+  const [upcomingRides, setUpcomingRides] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useContext(AuthContext);
+
+  useEffect(() => {
+    const fetchRides = async () => {
+      try {
+
+        console.log(user.email);
+        if (!user?.email) {
+          Alert.alert('Error', 'User email not available');
+          return;
+        }
+
+        const response = await axios.get('http://192.168.248.187:5000/api/rides', {
+          params: { email: user.email },
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        const formattedRides = response.data.map(ride => {
+          // Safe property access
+          const creatorName = ride.isCurrentUserCreator 
+            ? 'You' 
+            : ride.createdBy 
+              ? `${ride.createdBy.firstName || ''} ${ride.createdBy.lastName || ''}`.trim() 
+              : 'Unknown';
+    
+          return {
+            id: ride._id,
+            start: ride.source,
+            destination: ride.destination,
+            date: ride.date ? new Date(ride.date).toLocaleDateString() : 'N/A',
+            time: ride.time || 'N/A',
+            seatsLeft: ride.seatsLeft || 0,
+            fare: ride.totalFare || 0,
+            createdBy: creatorName,
+            status: ride.isCurrentUserCreator ? 'Confirmed' : 'Pending'
+          };
+        });
+    
+        setUpcomingRides(formattedRides);
+      } catch (error) {
+        console.error('Error fetching rides:', error);
+        Alert.alert(
+          'Error',
+          error.response?.data?.message || 'Failed to load rides. Please try again.'
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRides();
+  }, [user.email]);
 
   const renderRideCard = ({ item }) => (
     <View style={styles.card}>
@@ -85,7 +85,9 @@ const MyRides = ({ onBack }) => {
       </View>
 
       <View style={styles.statusContainer}>
-        <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>{item.status}</Text>
+        <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>
+          {item.status}
+        </Text>
       </View>
     </View>
   );
@@ -101,7 +103,6 @@ const MyRides = ({ onBack }) => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
           <Icon name="arrow-left" size={24} color="#FFB22C" />
@@ -109,16 +110,25 @@ const MyRides = ({ onBack }) => {
         <Text style={styles.headerTitle}>My Rides</Text>
       </View>
 
-      {/* Upcoming Rides Section */}
-      <FlatList
-        data={upcomingRides}
-        renderItem={renderRideCard}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
-        showsVerticalScrollIndicator={false}
-      />
-
-      {upcomingRides.length === 0 && <Text style={styles.noDataText}>No upcoming rides</Text>}
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading your rides...</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={upcomingRides}
+          renderItem={renderRideCard}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Icon name="car-off" size={40} color="#A0AEC0" />
+              <Text style={styles.noDataText}>No rides found</Text>
+            </View>
+          }
+        />
+      )}
     </View>
   );
 };
@@ -214,11 +224,26 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#A0AEC0',
+    marginTop: 10,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 50,
+  },
   noDataText: {
     fontSize: 16,
     color: '#A0AEC0',
-    textAlign: 'center',
-    marginTop: 20,
+    marginTop: 10,
   },
 });
 

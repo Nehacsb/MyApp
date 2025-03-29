@@ -60,10 +60,10 @@ const CreateRide = ({ onBack }) => {
         //userEmail: 'abcd', // Replace with the logged-in user's email
         userEmail: user.email,
       };
-      console.log(rideDetails);
+      console.log("ride details::::",rideDetails);
 
       // Send ride data to the backend API
-      const response = await axios.post('http://192.168.248.179:5000/api/rides', rideDetails);
+      const response = await axios.post('http://192.168.248.187:5000/api/rides', rideDetails);
 
       // Handle success
       Alert.alert('Success', 'Ride created successfully!');
