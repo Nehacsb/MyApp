@@ -1,18 +1,28 @@
 import React, { useState, useContext } from "react";
-import { 
-  View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator 
-} from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from "react-native";
 import { AuthContext } from "../context/AuthContext";
 
 const LoginScreen = ({ navigation }) => {
-  const { login } = useContext(AuthContext);
+  const { login, isAdmin } = useContext(AuthContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleLogin = async () => {
     setIsSubmitting(true);
-    await login(email, password);
+    try {
+      await login(email, password);
+      if (isAdmin) {
+        Alert.alert("Admin Login", "Do you want to continue as admin?", [
+          { text: "No", onPress: () => navigation.navigate("Dashboard") },
+          { text: "Yes", onPress: () => navigation.navigate("AdminScreen") },
+        ]);
+      } else {
+        navigation.navigate("Dashboard");
+      }
+    } catch (error) {
+      Alert.alert("Login Failed", error.message);
+    }
     setIsSubmitting(false);
   };
 
@@ -40,11 +50,7 @@ const LoginScreen = ({ navigation }) => {
       />
       
       <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={isSubmitting}>
-        {isSubmitting ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Login</Text>
-        )}
+        {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Login</Text>}
       </TouchableOpacity>
       
       <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
