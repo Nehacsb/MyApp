@@ -6,6 +6,8 @@ const dotenv = require("dotenv");
 const userRoutes = require("./routes/userRoutes");
 const rideRoutes = require("./routes/rideRoutes");
 const requestRoutes = require("./routes/requestRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+
 
 dotenv.config();
 const app = express();
@@ -25,6 +27,7 @@ app.use('/api', rideRoutes);
 
 app.use('/api', requestRoutes);
 
+app.use("/api", adminRoutes);
 
 app.get("/", (req, res) => {
   res.send("Server is running! 🚀");
