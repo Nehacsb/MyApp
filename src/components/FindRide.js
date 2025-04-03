@@ -1,141 +1,177 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import React, { useState, useEffect, useContext } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, Alert } from 'react-native';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import axios from 'axios';
+import { AuthContext } from '../context/AuthContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const FindRide = ({ onBack }) => {
-  const [startQuery, setStartQuery] = useState('');
-  const [destinationQuery, setDestinationQuery] = useState('');
+const FindRide = () => {
+  const { userToken } = useContext(AuthContext);
+  const [rides, setRides] = useState([]);
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
   const [minSeats, setMinSeats] = useState('');
-  const [rides, setRides] = useState([
-    {
-      id: '1',
-      start: 'IIT Ropar',
-      destination: 'Chandigarh',
-      date: '25 Oct 2023',
-      time: '10:00 AM',
-      seatsLeft: 3,
-      fare: 200,
-      createdBy: 'Rahul Sharma',
-    },
-    {
-      id: '2',
-      start: 'Chandigarh',
-      destination: 'Delhi',
-      date: '26 Oct 2023',
-      time: '08:00 AM',
-      seatsLeft: 2,
-      fare: 500,
-      createdBy: 'Priya Verma',
-    },
-    {
-      id: '3',
-      start: 'IIT Ropar',
-      destination: 'Amritsar',
-      date: '27 Oct 2023',
-      time: '09:00 AM',
-      seatsLeft: 4,
-      fare: 300,
-      createdBy: 'Aman Singh',
-    },
-  ]);
 
-  const filteredRides = rides.filter((ride) => {
-    const matchesStart = ride.start.toLowerCase().includes(startQuery.toLowerCase());
-    const matchesDestination = ride.destination.toLowerCase().includes(destinationQuery.toLowerCase());
-    const matchesSeats = minSeats ? ride.seatsLeft >= parseInt(minSeats, 10) : true;
+  const { user } = useContext(AuthContext);//...... 
 
-    return (
-      (startQuery && destinationQuery ? matchesStart && matchesDestination : matchesStart || matchesDestination) &&
-      matchesSeats
-    );
-  });
+  // Fetch rides when component loads
+  useEffect(() => {
+    fetchRides();
+  }, []);
 
-  const renderRideCard = ({ item }) => (
-    <View style={styles.card}>
-      {/* Top Row: Route and Seats */}
-      <View style={styles.topRow}>
-        <Text style={styles.routeText}>{item.start} → {item.destination}</Text>
-        <View style={styles.seatContainer}>
-          <Icon name="seat-passenger" size={18} color="#FFB22C" />
-          <Text style={styles.seatText}>{item.seatsLeft} seats left</Text>
-        </View>
-      </View>
+  const fetchRides = async () => {
+    try {
 
-      {/* Middle Row: Date and Time */}
-      <View style={styles.middleRow}>
-        <Icon name="calendar" size={16} color="#A0AEC0" />
-        <Text style={styles.dateText}>{item.date}</Text>
-        <Icon name="clock" size={16} color="#A0AEC0" style={styles.timeIcon} />
-        <Text style={styles.dateText}>{item.time}</Text>
-      </View>
+      
+      if (!from && !to) {
+        console.error("Please provide a source or destination");
+        return;
+      }
+      const url = `http://192.168.248.16:5000/api/rides/search?source=${from}&destination=${to}`;
 
-      {/* Bottom Row: Fare and Created By */}
-      <View style={styles.bottomRow}>
-        <Text style={styles.fareText}>₹{item.fare}</Text>
-        <Text style={styles.createdByText}>By {item.createdBy}</Text>
-      </View>
+      console.log("Fetching rides from:", url); // Log the URL
 
-      {/* Book Button */}
-      <TouchableOpacity style={styles.bookButton} onPress={() => alert(`Booking ride from ${item.start} to ${item.destination}`)}>
-        <View style={styles.bookButtonInner}>
-          <Text style={styles.bookButtonText}>Book Ride</Text>
-        </View>
-      </TouchableOpacity>
-    </View>
-  );
+      const response = await axios.get(url, {
+        headers: { Authorization: `Bearer ${userToken} `},
+      });
+      console.log('Fetched Rides:', response.data); // Debugging
+
+      if (Array.isArray(response.data)) {
+        setRides(response.data);
+      } else {
+        console.error('Unexpected data format:', response.data);
+      };
+    } catch (error) {
+      console.error('Error fetching rides:', error);
+    }
+  };
+
+  // Modify handleSearch to call fetchRides instead of filtering in frontend
+  const handleSearch = () => {
+    if (!from && !to) {
+      Alert.alert('Error', 'Please enter at least one location.');
+      return;
+    }
+    fetchRides();
+  };
+
+
+  const bookRide = async (rideId) => {
+    try {
+      // Make sure user object exists and has email
+      if (!user || !user.email) {
+        Alert.alert('Error', 'User information not available. Please login again.');
+        return;
+      }
+  
+      console.log('Attempting to book ride:', rideId, 'for user:', user.email);
+      
+      const response = await axios.post(
+        'http://192.168.248.16:5000/api/request/book',
+        { 
+          rideId, 
+          userEmail: user.email 
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+  
+      console.log('Booking response:', response.data);
+      
+      Alert.alert(
+        'Request Sent!',
+        response.data.message || 'Your ride request has been sent to the driver.'
+      );
+    } catch (error) {
+      console.error('Full error object:', error);
+      console.error('Error response data:', error.response?.data);
+      
+      let errorMessage = 'Failed to send request';
+      if (error.response) {
+        errorMessage = error.response.data?.message || 
+                      error.response.data?.msg || 
+                      `Server error (${error.response.status})`;
+      }
+      
+      Alert.alert('Error', errorMessage);
+    }
+  };
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} style={styles.backButton}>
-          <Icon name="arrow-left" size={24} color="#FFB22C" />
-        </TouchableOpacity>
+        <MaterialIcons name="arrow-back" size={24} color="white" />
         <Text style={styles.headerTitle}>Find a Ride</Text>
       </View>
 
-      {/* Search Inputs */}
+      {/* Search Fields */}
       <View style={styles.searchContainer}>
-        <View style={styles.searchInputContainer}>
-          <Icon name="map-marker" size={20} color="#A0AEC0" style={styles.searchIcon} />
+        <View style={styles.inputContainer}>
+          <MaterialIcons name="place" size={24} color="#FFB22C" style={styles.icon} />
           <TextInput
-            style={styles.searchInput}
+            style={styles.input}
             placeholder="From"
             placeholderTextColor="#A0AEC0"
-            value={startQuery}
-            onChangeText={setStartQuery}
+            value={from}
+            onChangeText={setFrom}
           />
         </View>
-        <View style={styles.searchInputContainer}>
-          <Icon name="map-marker" size={20} color="#A0AEC0" style={styles.searchIcon} />
+
+        <View style={styles.inputContainer}>
+          <MaterialIcons name="place" size={24} color="#FFB22C" style={styles.icon} />
           <TextInput
-            style={styles.searchInput}
+            style={styles.input}
             placeholder="To"
             placeholderTextColor="#A0AEC0"
-            value={destinationQuery}
-            onChangeText={setDestinationQuery}
+            value={to}
+            onChangeText={setTo}
           />
         </View>
-        <View style={styles.searchInputContainer}>
-          <Icon name="account-group" size={20} color="#A0AEC0" style={styles.searchIcon} />
+
+        <View style={styles.inputContainer}>
+          <MaterialIcons name="event-seat" size={24} color="#FFB22C" style={styles.icon} />
           <TextInput
-            style={styles.searchInput}
+            style={styles.input}
             placeholder="Minimum Seats (optional)"
             placeholderTextColor="#A0AEC0"
+            keyboardType="numeric"
             value={minSeats}
             onChangeText={setMinSeats}
-            keyboardType="numeric"
           />
         </View>
+
+        <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
+          <Text style={styles.searchButtonText}>Search</Text>
+        </TouchableOpacity>
       </View>
 
-      {/* Ride List */}
+      {/* Rides List */}
       <FlatList
-        data={filteredRides}
-        renderItem={renderRideCard}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
-        showsVerticalScrollIndicator={false}
+        data={rides}
+        keyExtractor={(item, index) => item?._id || index.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.rideItem}>
+            <View style={styles.rideHeader}>
+              <Text style={styles.rideRoute}>{item.source} → {item.destination}</Text>
+              <Text style={styles.rideDate}>{item.date}</Text>
+            </View>
+            <View>
+              <Text style={styles.rideDetail}>Time: {item.time}</Text>
+              <Text style={styles.rideDetail}>Seats Left: {item.seatsLeft}</Text>
+              <Text style={styles.rideDetail}>Price: ${item.totalFare}</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.bookButton}
+              onPress={() => bookRide(item._id)}
+            >
+              <Text style={styles.bookButtonText}>Book Ride</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       />
     </View>
   );
@@ -145,117 +181,87 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1E1E2E',
-    paddingHorizontal: 16,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 20,
-  },
-  backButton: {
-    marginRight: 10,
+    padding: 16,
+    paddingTop: 24,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#FFFFFF',
+    marginLeft: 10,
   },
   searchContainer: {
-    marginBottom: 20,
+    paddingHorizontal: 16,
+    marginBottom: 16,
   },
-  searchInputContainer: {
+  inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#2C3E50',
     borderRadius: 15,
-    paddingHorizontal: 15,
+    padding: 10,
     marginBottom: 10,
   },
-  searchIcon: {
+  icon: {
     marginRight: 10,
   },
-  searchInput: {
+  input: {
     flex: 1,
-    height: 50,
     fontSize: 16,
     color: '#FFFFFF',
   },
-  list: {
-    paddingBottom: 20,
-  },
-  card: {
-    backgroundColor: '#2C3E50',
-    borderRadius: 20,
-    padding: 16,
-    marginBottom: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 5,
-  },
-  topRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  searchButton: {
+    backgroundColor: '#FFB22C',
+    borderRadius: 15,
+    padding: 14,
     alignItems: 'center',
-    marginBottom: 10,
   },
-  routeText: {
+  searchButtonText: {
+    color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  rideItem: {
+    backgroundColor: '#2C3E50',
+    borderRadius: 15,
+    padding: 16,
+    marginHorizontal: 16,
+    marginBottom: 16,
+  },
+  rideHeader: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#3E5065',
+    paddingBottom: 8,
+    marginBottom: 8,
+  },
+  rideRoute: {
     color: '#FFFFFF',
-  },
-  seatContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  seatText: {
-    fontSize: 14,
-    color: '#A0AEC0',
-    marginLeft: 5,
-  },
-  middleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  dateText: {
-    fontSize: 14,
-    color: '#A0AEC0',
-    marginLeft: 5,
-  },
-  timeIcon: {
-    marginLeft: 15,
-  },
-  bottomRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  fareText: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFB22C',
   },
-  createdByText: {
-    fontSize: 14,
+  rideDate: {
     color: '#A0AEC0',
+    fontSize: 14,
+  },
+  rideDetail: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    marginBottom: 8,
   },
   bookButton: {
     backgroundColor: '#FFB22C',
-    borderRadius: 15,
-    overflow: 'hidden',
-    marginTop: 10,
-  },
-  bookButtonInner: {
-    padding: 12,
+    borderRadius: 10,
+    padding: 10,
     alignItems: 'center',
   },
   bookButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
     fontWeight: 'bold',
+    fontSize: 16,
   },
 });
 

@@ -35,16 +35,13 @@ const SignupScreen = ({ navigation }) => {
     }
   };
 
-  const selectGender = (selectedGender) => {
-    setGender(selectedGender);
-    setDropdownVisible(false);
-  };
-
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Sign Up</Text>
-      <TextInput placeholder="First Name" value={firstName} onChangeText={setFirstName} style={styles.input} />
-      <TextInput placeholder="Last Name" value={lastName} onChangeText={setLastName} style={styles.input} />
+      <Text style={styles.title}>Create an Account</Text>
+      <Text style={styles.subtitle}>Join us and start your journey</Text>
+      
+      <TextInput placeholder="First Name" placeholderTextColor="#aaa" value={firstName} onChangeText={setFirstName} style={styles.input} />
+      <TextInput placeholder="Last Name" placeholderTextColor="#aaa" value={lastName} onChangeText={setLastName} style={styles.input} />
       
       {/* Gender Dropdown */}
       <TouchableOpacity onPress={() => setDropdownVisible(true)} style={styles.dropdownTrigger}>
@@ -55,7 +52,7 @@ const SignupScreen = ({ navigation }) => {
           <View style={styles.modalOverlay}>
             <View style={styles.dropdownOptions}>
               {genders.map((item) => (
-                <TouchableOpacity key={item} onPress={() => selectGender(item)} style={styles.dropdownOption}>
+                <TouchableOpacity key={item} onPress={() => { setGender(item); setDropdownVisible(false); }} style={styles.dropdownOption}>
                   <Text style={styles.dropdownOptionText}>{item}</Text>
                 </TouchableOpacity>
               ))}
@@ -64,9 +61,9 @@ const SignupScreen = ({ navigation }) => {
         </TouchableWithoutFeedback>
       </Modal>
 
-      <TextInput placeholder="Email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" style={styles.input} />
-      <TextInput placeholder="Phone Number" value={phoneNumber} onChangeText={setPhoneNumber} keyboardType="phone-pad" style={styles.input} />
-      <TextInput placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry style={styles.input} />
+      <TextInput placeholder="Email" placeholderTextColor="#aaa" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" style={styles.input} />
+      <TextInput placeholder="Phone Number" placeholderTextColor="#aaa" value={phoneNumber} onChangeText={setPhoneNumber} keyboardType="phone-pad" style={styles.input} />
+      <TextInput placeholder="Password" placeholderTextColor="#aaa" value={password} onChangeText={setPassword} secureTextEntry style={styles.input} />
 
       <TouchableOpacity style={styles.button} onPress={handleSignup} disabled={isSubmitting}>
         {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Sign Up</Text>}
@@ -80,21 +77,67 @@ const SignupScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", alignItems: "center", padding: 20 },
-  title: { fontSize: 28, fontWeight: "bold", marginBottom: 20 },
-  input: { width: "100%", padding: 12, borderWidth: 1, borderRadius: 8, marginBottom: 10 },
-  dropdownTrigger: {
-    width: "100%", padding: 12, borderWidth: 1, borderRadius: 8, marginBottom: 10,
-    justifyContent: "center", backgroundColor: "#fff",
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+    backgroundColor: "#0F172A", // Deep dark blue background
   },
-  dropdownText: { color: "#000" },
+  title: {
+    fontSize: 32,
+    fontWeight: "bold",
+    color: "#ffffff",
+    marginBottom: 5,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: "#94A3B8", // Light grayish blue
+    marginBottom: 20,
+  },
+  input: {
+    width: "100%",
+    padding: 14,
+    borderRadius: 12,
+    backgroundColor: "#1E293B", // Dark grayish blue
+    color: "#ffffff",
+    fontSize: 16,
+    marginBottom: 15,
+  },
+  dropdownTrigger: {
+    width: "100%",
+    padding: 14,
+    borderRadius: 12,
+    backgroundColor: "#1E293B",
+    marginBottom: 15,
+    justifyContent: "center",
+  },
+  dropdownText: { color: "#ffffff" },
   modalOverlay: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.4)" },
-  dropdownOptions: { width: "80%", backgroundColor: "#fff", borderRadius: 8, padding: 10 },
-  dropdownOption: { padding: 10, borderBottomWidth: 1, borderBottomColor: "#ccc" },
-  dropdownOptionText: { color: "#000" },
-  button: { backgroundColor: "#007BFF", padding: 12, borderRadius: 8, width: "100%", alignItems: "center" },
-  buttonText: { color: "#fff", fontWeight: "bold" },
-  link: { marginTop: 10, color: "#007BFF" },
+  dropdownOptions: { width: "80%", backgroundColor: "#1E293B", borderRadius: 8, padding: 10 },
+  dropdownOption: { padding: 10, borderBottomWidth: 1, borderBottomColor: "#94A3B8" },
+  dropdownOptionText: { color: "#ffffff" },
+  button: {
+    backgroundColor: "#4F46E5", // Royal blue
+    padding: 15,
+    borderRadius: 12,
+    width: "100%",
+    alignItems: "center",
+    shadowColor: "rgba(0, 0, 0, 0.2)",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  link: {
+    marginTop: 15,
+    color: "#60A5FA", // Soft blue
+    fontSize: 16,
+  },
 });
 
 export default SignupScreen;

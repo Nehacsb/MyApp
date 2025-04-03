@@ -1,53 +1,70 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, SectionList } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 
 const MyRides = ({ onBack }) => {
-  const [upcomingRides, setUpcomingRides] = useState([]);
+  const [ridesData, setRidesData] = useState({
+    createdRides: [],
+    requestedRides: []
+  });
   const [loading, setLoading] = useState(true);
   const { user } = useContext(AuthContext);
 
   useEffect(() => {
     const fetchRides = async () => {
       try {
-
-        console.log(user.email);
         if (!user?.email) {
           Alert.alert('Error', 'User email not available');
           return;
         }
 
-        const response = await axios.get('http://192.168.248.187:5000/api/rides', {
+        // Fetch rides created by user
+
+        console.log("Fetching rides for user:", user.email); // Debugging
+        const createdResponse = await axios.get('http://192.168.248.16:5000/api/rides', {
           params: { email: user.email },
-          headers: {
-            'Content-Type': 'application/json'
-          }
+          headers: { 'Content-Type': 'application/json' }
         });
-        
-        const formattedRides = response.data.map(ride => {
-          // Safe property access
-          const creatorName = ride.isCurrentUserCreator 
-            ? 'You' 
-            : ride.createdBy 
-              ? `${ride.createdBy.firstName || ''} ${ride.createdBy.lastName || ''}`.trim() 
-              : 'Unknown';
-    
-          return {
-            id: ride._id,
-            start: ride.source,
-            destination: ride.destination,
-            date: ride.date ? new Date(ride.date).toLocaleDateString() : 'N/A',
-            time: ride.time || 'N/A',
-            seatsLeft: ride.seatsLeft || 0,
-            fare: ride.totalFare || 0,
-            createdBy: creatorName,
-            status: ride.isCurrentUserCreator ? 'Confirmed' : 'Pending'
-          };
+        console.log('Fetched Created Rides:', createdResponse.data); // Debugging
+        // Fetch rides requested by user
+        const requestedResponse = await axios.get('http://192.168.248.16:5000/api/request/requests', {
+          params: { userEmail: user.email },
+          headers: { 'Content-Type': 'application/json' }
         });
-    
-        setUpcomingRides(formattedRides);
+
+        // Format created rides
+        const formattedCreatedRides = createdResponse.data.map(ride => ({
+          id: ride._id,
+          start: ride.source,
+          destination: ride.destination,
+          date: ride.date ? new Date(ride.date).toLocaleDateString() : 'N/A',
+          time: ride.time || 'N/A',
+          seatsLeft: ride.maxCapacity - (ride.passengers?.length || 0),
+          fare: ride.totalFare || 0,
+          status: 'Driver',
+          type: 'created'
+        }));
+
+        // Format requested rides
+        const formattedRequestedRides = requestedResponse.data.map(request => ({
+          id: request._id,
+          rideId: request.ride?._id,
+          start: request.ride?.source || 'N/A',
+          destination: request.ride?.destination || 'N/A',
+          date: request.ride?.date ? new Date(request.ride.date).toLocaleDateString() : 'N/A',
+          time: request.ride?.time || 'N/A',
+          seatsLeft: request.ride ? (request.ride.maxCapacity - (request.ride.passengers?.length || 0)) : 0,
+          fare: request.ride?.totalFare || 0,
+          status: request.status || 'pending',
+          type: 'requested'
+        }));
+
+        setRidesData({
+          createdRides: formattedCreatedRides,
+          requestedRides: formattedRequestedRides
+        });
       } catch (error) {
         console.error('Error fetching rides:', error);
         Alert.alert(
@@ -61,6 +78,18 @@ const MyRides = ({ onBack }) => {
 
     fetchRides();
   }, [user.email]);
+
+  // Prepare data for SectionList
+  const sections = [
+    {
+      title: 'Rides You Created',
+      data: ridesData.createdRides,
+    },
+    {
+      title: 'Rides You Requested',
+      data: ridesData.requestedRides,
+    }
+  ];
 
   const renderRideCard = ({ item }) => (
     <View style={styles.card}>
@@ -81,25 +110,38 @@ const MyRides = ({ onBack }) => {
 
       <View style={styles.bottomRow}>
         <Text style={styles.fareText}>₹{item.fare}</Text>
-        <Text style={styles.createdByText}>By {item.createdBy}</Text>
-      </View>
-
-      <View style={styles.statusContainer}>
         <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>
-          {item.status}
+          {formatStatus(item.status)}
         </Text>
       </View>
     </View>
   );
 
+  const formatStatus = (status) => {
+    switch (status) {
+      case 'Driver': return 'Your Ride';
+      case 'accepted': return 'Confirmed';
+      case 'pending': return 'Pending Approval';
+      case 'rejected': return 'Rejected';
+      default: return status;
+    }
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Confirmed': return '#4CAF50';
-      case 'Pending': return '#FFC107';
-      case 'Cancelled/Rejected': return '#F44336';
+      case 'Driver':
+      case 'accepted': return '#4CAF50';
+      case 'pending': return '#FFC107';
+      case 'rejected': return '#F44336';
       default: return '#A0AEC0';
     }
   };
+
+  const renderSectionHeader = ({ section }) => (
+    <View style={styles.sectionHeader}>
+      <Text style={styles.sectionHeaderText}>{section.title}</Text>
+    </View>
+  );
 
   return (
     <View style={styles.container}>
@@ -115,9 +157,10 @@ const MyRides = ({ onBack }) => {
           <Text style={styles.loadingText}>Loading your rides...</Text>
         </View>
       ) : (
-        <FlatList
-          data={upcomingRides}
+        <SectionList
+          sections={sections}
           renderItem={renderRideCard}
+          renderSectionHeader={renderSectionHeader}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
@@ -209,20 +252,21 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#FFB22C',
   },
-  createdByText: {
-    fontSize: 14,
-    color: '#A0AEC0',
-  },
-  statusContainer: {
-    borderRadius: 10,
-    padding: 8,
-    marginTop: 10,
-    alignItems: 'center',
-    backgroundColor: '#1E1E2E',
-  },
   statusText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  sectionHeader: {
+    backgroundColor: '#1E1E2E',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  sectionHeaderText: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#FFB22C',
   },
   loadingContainer: {
     flex: 1,

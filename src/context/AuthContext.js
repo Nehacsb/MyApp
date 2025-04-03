@@ -1,5 +1,7 @@
 import React, { createContext, useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+//import { MURL } from '@env';
+
 
 export const AuthContext = createContext();
 
@@ -29,7 +31,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await fetch("http://192.168.248.187:5000/api/login", {
+      const response = await fetch(`http://192.168.248.16:5000/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -61,7 +63,7 @@ export const AuthProvider = ({ children }) => {
 
   const signup = async (firstName, lastName, email, password, phoneNumber, gender) => {
     try {
-      const response = await fetch("http://192.168.248.157:5000/api/signup", {
+      const response = await fetch("http://192.168.248.16:5000/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ firstName, lastName, email, password, phoneNumber, gender }),

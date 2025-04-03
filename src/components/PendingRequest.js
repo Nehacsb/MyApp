@@ -1,42 +1,123 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons'; // Import MaterialIcons from react-native-vector-icons
+import React, { useState, useEffect, useContext } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import axios from 'axios';
+import { AuthContext } from '../context/AuthContext';
 
 const PendingRequests = ({ onBack }) => {
-  const [requests, setRequests] = useState([
-    {
-      id: '1',
-      start: 'IIT Ropar',
-      destination: 'Chandigarh',
-      requesterName: 'Aman Sharma',
-      requesterEmail: 'aman@example.com',
-      date: '10/03/2025',
-      time: '10:00 AM',
-    },
-    {
-      id: '2',
-      start: 'Delhi',
-      destination: 'Noida',
-      requesterName: 'Priya Gupta',
-      requesterEmail: 'priya@example.com',
-      date: '15/03/2025',
-      time: '06:30 PM',
-    },
-  ]);
+  const { user } = useContext(AuthContext);
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleAccept = (id) => {
-    setRequests(requests.filter((request) => request.id !== id));
-    alert('Request Accepted!');
+  useEffect(() => {
+    if (user?.email) {
+      fetchPendingRequests();
+    }
+  }, [user?.email]);
+
+  const fetchPendingRequests = async () => {
+    try {
+      console.log("Fetching requests for user:", user.email);
+      
+      // Get rides created by this user
+      const ridesResponse = await axios.get('http://192.168.248.16:5000/api/rides', {
+        params: { email: user.email }
+      });
+
+      console.log('Fetched Rides:', ridesResponse.data); // Debugging
+      
+      
+      const rideIds = ridesResponse.data.map(ride => ride._id);
+      
+      // Get pending requests for these rides
+      const requestsResponse = await axios.get('http://192.168.248.16:5000/api/request/requests', {
+        params: { 
+          rideIds: JSON.stringify(rideIds),
+          status: 'pending'
+        }
+      });
+      
+      setRequests(requestsResponse.data);
+    } catch (error) {
+      console.error('Fetch error:', {
+        message: error.message,
+        response: error.response?.data,
+        config: error.config
+      });
+      Alert.alert('Error', 'Failed to load requests. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleReject = (id) => {
-    setRequests(requests.filter((request) => request.id !== id));
-    alert('Request Rejected.');
+  const handleRequestAction = async (requestId, action) => {
+    try {
+      // Update request status
+      await axios.patch(`http://192.168.248.16:5000/api/request/requests/${requestId}`, {
+        status: action
+      });
+      
+      // If accepted, update ride passengers
+      if (action === 'accepted') {
+        const request = requests.find(r => r._id === requestId);
+        await axios.patch(`http://192.168.248.16:5000/api/request/${request.ride._id}/add-passenger`, {
+          userId: request.requester._id
+        });
+      }
+      
+      Alert.alert('Success', `Request ${action}`);
+      fetchPendingRequests(); // Refresh the list
+    } catch (error) {
+      console.error('Update error:', error.response?.data || error.message);
+      Alert.alert('Error', `Failed to ${action} request`);
+    }
   };
+
+  const renderRequestItem = ({ item }) => (
+    <View style={styles.card}>
+      <Text style={styles.routeText}>
+        {item.ride.source} → {item.ride.destination}
+      </Text>
+      
+      <View style={styles.dateTimeContainer}>
+        <MaterialIcons name="calendar-today" size={16} color="#A0AEC0" />
+        <Text style={styles.dateTimeText}>
+          {new Date(item.ride.date).toLocaleDateString()}
+        </Text>
+        <MaterialIcons name="access-time" size={16} color="#A0AEC0" style={styles.timeIcon} />
+        <Text style={styles.dateTimeText}>{item.ride.time}</Text>
+      </View>
+
+      <View style={styles.requesterDetails}>
+        <MaterialIcons name="person" size={16} color="#FFB22C" />
+        <Text style={styles.requesterName}>
+          {item.requester.firstName} {item.requester.lastName}
+        </Text>
+      </View>
+      <View style={styles.requesterDetails}>
+        <MaterialIcons name="email" size={16} color="#FFB22C" />
+        <Text style={styles.requesterEmail}>{item.requester.email}</Text>
+      </View>
+
+      <View style={styles.actions}>
+        <TouchableOpacity
+          style={[styles.actionButton, styles.acceptButton]}
+          onPress={() => handleRequestAction(item._id, 'accepted')}
+        >
+          <Text style={styles.actionButtonText}>Accept</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.actionButton, styles.rejectButton]}
+          onPress={() => handleRequestAction(item._id, 'rejected')}
+        >
+          <Text style={styles.actionButtonText}>Reject</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
           <MaterialIcons name="arrow-back" size={24} color="#FFB22C" />
@@ -44,55 +125,18 @@ const PendingRequests = ({ onBack }) => {
         <Text style={styles.headerTitle}>Incoming Requests</Text>
       </View>
 
-      {/* Requests List */}
-      <FlatList
-        data={requests}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            {/* Route */}
-            <Text style={styles.routeText}>
-              {item.start} → {item.destination}
-            </Text>
-
-            {/* Date and Time */}
-            <View style={styles.dateTimeContainer}>
-              <MaterialIcons name="calendar-today" size={16} color="#A0AEC0" />
-              <Text style={styles.dateTimeText}>{item.date}</Text>
-              <MaterialIcons name="access-time" size={16} color="#A0AEC0" style={styles.timeIcon} />
-              <Text style={styles.dateTimeText}>{item.time}</Text>
-            </View>
-
-            {/* Requester Details */}
-            <View style={styles.requesterDetails}>
-              <MaterialIcons name="person" size={16} color="#FFB22C" />
-              <Text style={styles.requesterName}>{item.requesterName}</Text>
-            </View>
-            <View style={styles.requesterDetails}>
-              <MaterialIcons name="email" size={16} color="#FFB22C" />
-              <Text style={styles.requesterEmail}>{item.requesterEmail}</Text>
-            </View>
-
-            {/* Actions */}
-            <View style={styles.actions}>
-              <TouchableOpacity
-                style={[styles.actionButton, styles.acceptButton]}
-                onPress={() => handleAccept(item.id)}
-              >
-                <Text style={[styles.actionButtonText, { color: '#4CAF50' }]}>Accept</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.actionButton, styles.rejectButton]}
-                onPress={() => handleReject(item.id)}
-              >
-                <Text style={[styles.actionButtonText, { color: '#F44336' }]}>Reject</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-        contentContainerStyle={styles.list}
-        showsVerticalScrollIndicator={false}
-      />
+      {loading ? (
+        <Text style={styles.loadingText}>Loading requests...</Text>
+      ) : requests.length === 0 ? (
+        <Text style={styles.noRequestsText}>No pending requests</Text>
+      ) : (
+        <FlatList
+          data={requests}
+          renderItem={renderRequestItem}
+          keyExtractor={item => item._id}
+          contentContainerStyle={styles.list}
+        />
+      )}
     </View>
   );
 };
@@ -100,7 +144,7 @@ const PendingRequests = ({ onBack }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1E1E2E', // Dark background for consistency
+    backgroundColor: '#1E1E2E',
     paddingHorizontal: 16,
   },
   header: {
@@ -115,26 +159,21 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#FFFFFF', // White text for contrast
+    color: '#FFFFFF',
   },
   list: {
     paddingBottom: 20,
   },
   card: {
-    backgroundColor: '#2C3E50', // Dark blue-gray for cards
+    backgroundColor: '#2C3E50',
     borderRadius: 20,
     padding: 16,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 5,
   },
   routeText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFFFFF', // White text for contrast
+    color: '#FFFFFF',
     marginBottom: 10,
   },
   dateTimeContainer: {
@@ -144,7 +183,7 @@ const styles = StyleSheet.create({
   },
   dateTimeText: {
     fontSize: 14,
-    color: '#A0AEC0', // Light gray for subtitle
+    color: '#A0AEC0',
     marginLeft: 8,
   },
   timeIcon: {
@@ -157,12 +196,12 @@ const styles = StyleSheet.create({
   },
   requesterName: {
     fontSize: 16,
-    color: '#FFFFFF', // White text for contrast
+    color: '#FFFFFF',
     marginLeft: 8,
   },
   requesterEmail: {
     fontSize: 14,
-    color: '#A0AEC0', // Light gray for subtitle
+    color: '#A0AEC0',
     marginLeft: 8,
   },
   actions: {
@@ -171,7 +210,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   actionButton: {
-    backgroundColor: '#1E1E2E', // Dark background for buttons
+    backgroundColor: '#1E1E2E',
     borderRadius: 15,
     paddingVertical: 10,
     paddingHorizontal: 20,
@@ -181,14 +220,25 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   acceptButton: {
-    borderColor: '#4CAF50', // Green border for accept
+    borderColor: '#4CAF50',
   },
   rejectButton: {
-    borderColor: '#F44336', // Red border for reject
+    borderColor: '#F44336',
   },
   actionButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  loadingText: {
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginTop: 20,
+  },
+  noRequestsText: {
+    color: '#A0AEC0',
+    textAlign: 'center',
+    marginTop: 20,
   },
 });
 
