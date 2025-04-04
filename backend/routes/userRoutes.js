@@ -5,6 +5,7 @@ const generateToken = require("../../src/utils/generateToken"); // Ensure this p
 const router = express.Router();
 
 // Signup Route
+// Signup Route
 router.post("/signup", async (req, res) => {
   try {
     console.log("Request Body:", req.body); // Log the request body
@@ -38,22 +39,19 @@ router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // Find user by email
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    // Compare passwords
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    // Generate token
     const token = generateToken(user._id);
+    const isAdmin = email === process.env.ADMIN_EMAIL; // Check if the user is admin
 
-    // Respond with user and token
     res.status(200).json({
       user: {
         _id: user._id,
@@ -63,9 +61,10 @@ router.post("/login", async (req, res) => {
         gender: user.gender,
       },
       token,
+      isAdmin,
     });
   } catch (err) {
-    console.error("Login Errorrrr:", err);
+    console.error("Login Error:", err);
     res.status(500).json({ message: "Server error" });
   }
 });

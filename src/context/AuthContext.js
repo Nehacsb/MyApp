@@ -1,23 +1,25 @@
 import React, { createContext, useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-//import { MURL } from '@env';
-
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminMode, setAdminMode] = useState(false); // State to toggle admin mode
 
   useEffect(() => {
     const loadUser = async () => {
       try {
-        // Uncomment this line for debugging (clear AsyncStorage)
-        await AsyncStorage.clear(); // <-- Remove this in production
-
+        setIsLoading(true);
         const storedUser = await AsyncStorage.getItem("user");
-        if (storedUser) {
+        const storedToken = await AsyncStorage.getItem("token");
+        const storedAdmin = await AsyncStorage.getItem("isAdmin");
+
+        if (storedUser && storedToken) {
           setUser(JSON.parse(storedUser));
+          setIsAdmin(storedAdmin === "true"); // Convert string to boolean
         }
       } catch (error) {
         console.error("Failed to load user data:", error);
@@ -43,21 +45,18 @@ export const AuthProvider = ({ children }) => {
       }
 
       const data = await response.json();
-      const { user, token } = data;
+      const { user, token, isAdmin } = data;
 
-      if (!user || !token) {
-        throw new Error("Invalid response from server");
-      }
-
-      // Store user and token in AsyncStorage
       await AsyncStorage.setItem("user", JSON.stringify(user));
       await AsyncStorage.setItem("token", token);
+      await AsyncStorage.setItem("isAdmin", JSON.stringify(isAdmin));
 
-      // Update user state
       setUser(user);
+      setIsAdmin(isAdmin);
+      setAdminMode(isAdmin); // If user is admin, set admin mode by default
     } catch (error) {
       console.error("Login Error:", error);
-      throw error; // Re-throw the error to handle it in the component
+      throw error;
     }
   };
 
@@ -68,40 +67,44 @@ export const AuthProvider = ({ children }) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ firstName, lastName, email, password, phoneNumber, gender }),
       });
-
+  
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to sign up");
       }
-
+  
       const data = await response.json();
       const { user, token } = data;
-
-      // Store user and token in AsyncStorage
+  
       await AsyncStorage.setItem("user", JSON.stringify(user));
       await AsyncStorage.setItem("token", token);
-
-      // Update user state
+      await AsyncStorage.setItem("isAdmin", JSON.stringify(false)); // ✅ Set isAdmin to false for new users
+  
       setUser(user);
+      setIsAdmin(false); // ✅ Explicitly set isAdmin state to false
+      setAdminMode(false); // ✅ Ensure adminMode is also false for non-admins
     } catch (error) {
       console.error("Signup Error:", error);
-      throw error; // Re-throw the error to handle it in the component
+      throw error;
     }
   };
-
+  
   const logout = async () => {
     try {
-      await AsyncStorage.removeItem("user");
-      await AsyncStorage.removeItem("token");
+      await AsyncStorage.clear();
       setUser(null);
+      setIsAdmin(false);
+      setAdminMode(false); // Reset admin mode on logout
     } catch (error) {
       console.error("Logout Error:", error);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, signup, logout, setUser }}>
-      {children}
+    <AuthContext.Provider
+      value={{ user, isLoading, isAdmin, adminMode, setAdminMode, login, logout, signup, setUser }}
+    >
+      {!isLoading && children} {/* Ensure the app doesn't auto-navigate before checking auth */}
     </AuthContext.Provider>
   );
 };
