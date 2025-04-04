@@ -63,7 +63,7 @@ const CreateRide = ({ onBack }) => {
       console.log("ride details::::",rideDetails);
 
       // Send ride data to the backend API
-      const response = await axios.post('http://192.168.248.16:5000/api/rides', rideDetails);
+      const response = await axios.post('http://10.0.2.2:5000/api/rides', rideDetails);
 
       // Handle success
       Alert.alert('Success', 'Ride created successfully!');
