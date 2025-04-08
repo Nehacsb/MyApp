@@ -20,7 +20,7 @@ const PendingRequests = ({ onBack }) => {
       console.log("Fetching requests for user:", user.email);
       
       // Get rides created by this user
-      const ridesResponse = await axios.get('http://myapp-production-4538.up.railway.app/api/rides', {
+      const ridesResponse = await axios.get('http://web-production-de29.up.railway.app/api/rides', {
         params: { email: user.email }
       });
 
@@ -30,7 +30,7 @@ const PendingRequests = ({ onBack }) => {
       const rideIds = ridesResponse.data.map(ride => ride._id);
       
       // Get pending requests for these rides
-      const requestsResponse = await axios.get('http://myapp-production-4538.up.railway.app/api/request/requests', {
+      const requestsResponse = await axios.get('http://web-production-de29.up.railway.app/api/request/requests', {
         params: { 
           rideIds: JSON.stringify(rideIds),
           status: 'pending'
@@ -53,14 +53,14 @@ const PendingRequests = ({ onBack }) => {
   const handleRequestAction = async (requestId, action) => {
     try {
       // Update request status
-      await axios.patch(`http://myapp-production-4538.up.railway.app/api/request/requests/${requestId}`, {
+      await axios.patch(`http://web-production-de29.up.railway.app/api/request/requests/${requestId}`, {
         status: action
       });
       
       // If accepted, update ride passengers
       if (action === 'accepted') {
         const request = requests.find(r => r._id === requestId);
-        await axios.patch(`http://myapp-production-4538.up.railway.app/api/request/${request.ride._id}/add-passenger`, {
+        await axios.patch(`http://web-production-de29.up.railway.app/api/request/${request.ride._id}/add-passenger`, {
           userId: request.requester._id
         });
       }

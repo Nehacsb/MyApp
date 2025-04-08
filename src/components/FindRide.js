@@ -27,7 +27,7 @@ const FindRide = () => {
         console.error("Please provide a source or destination");
         return;
       }
-      const url = `http://myapp-production-4538.up.railway.app/api/rides/search?source=${from}&destination=${to}`;
+      const url = `http://web-production-de29.up.railway.app/api/rides/search?source=${from}&destination=${to}`;
 
       console.log("Fetching rides from:", url); // Log the URL
 
@@ -67,7 +67,7 @@ const FindRide = () => {
       console.log('Attempting to book ride:', rideId, 'for user:', user.email);
       
       const response = await axios.post(
-        'http://myapp-production-4538.up.railway.app/api/request/book',
+        'http://web-production-de29.up.railway.app/api/request/book',
         { 
           rideId, 
           userEmail: user.email 

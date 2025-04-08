@@ -34,7 +34,7 @@ const AdminScreen = () => {
     const fetchDomains = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch('http://myapp-production-4538.up.railway.app/api/admin/authorized_domain');
+        const response = await fetch('http://web-production-de29.up.railway.app/api/admin/authorized_domain');
         const data = await handleResponse(response);
         setAuthorizedDomains(Array.isArray(data) ? data : []);
       } catch (error) {
@@ -53,7 +53,7 @@ const AdminScreen = () => {
     if (!trimmedDomain) return;
 
     try {
-      const response = await fetch('http://myapp-production-4538.up.railway.app/api/admin/authorize_domain', {
+      const response = await fetch('http://web-production-de29.up.railway.app/api/admin/authorize_domain', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ domain: trimmedDomain }),
@@ -72,7 +72,7 @@ const AdminScreen = () => {
   // Remove domain
   const removeDomain = async (domainToRemove) => {
     try {
-      const response = await fetch('http://myapp-production-4538.up.railway.app/api/admin/remove_domain', {
+      const response = await fetch('http://web-production-de29.up.railway.app/api/admin/remove_domain', {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ domain: domainToRemove }),
@@ -91,7 +91,7 @@ const AdminScreen = () => {
   const fetchLocations = async () => {
     setIsLocationsLoading(true);
     try {
-      const response = await fetch("http://myapp-production-4538.up.railway.app/api/locations");
+      const response = await fetch("http://web-production-de29.up.railway.app/api/locations");
       const data = await handleResponse(response);
       setLocations(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -108,7 +108,7 @@ const AdminScreen = () => {
     if (!trimmedLocation) return;
     
     try {
-      const response = await fetch("http://myapp-production-4538.up.railway.app/api/locations", {
+      const response = await fetch("http://web-production-de29.up.railway.app/api/locations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: trimmedLocation }),
@@ -128,7 +128,7 @@ const AdminScreen = () => {
   const removeLocation = async (locationToRemove) => {
     try {
       const response = await fetch(
-        `http://myapp-production-4538.up.railway.app/api/locations/${locationToRemove.id || locationToRemove}`, 
+        `http://web-production-de29.up.railway.app/api/locations/${locationToRemove.id || locationToRemove}`, 
         { method: "DELETE" }
       );
       

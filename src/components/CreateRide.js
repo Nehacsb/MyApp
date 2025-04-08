@@ -28,7 +28,7 @@ const CreateRide = ({ onBack }) => {
   useEffect(() => {
     const fetchLocations = async () => {
       try {
-        const res = await axios.get('http://myapp-production-4538.up.railway.app/api/locations');
+        const res = await axios.get('http://web-production-de29.up.railway.app/api/locations');
         setAvailableLocations(res.data.locations); // Expecting list like ["Chandigarh", "Mohali", ...]
       } catch (err) {
         console.error('Failed to fetch locations', err);
@@ -103,7 +103,7 @@ const CreateRide = ({ onBack }) => {
       console.log("ride details::::",rideDetails);
 
       // Send ride data to the backend API
-      const response = await axios.post('http://myapp-production-4538.up.railway.app/api/rides', rideDetails);
+      const response = await axios.post('http://web-production-de29.up.railway.app/api/rides', rideDetails);
 
       // Handle success
       Alert.alert('Success', 'Ride created successfully!');
