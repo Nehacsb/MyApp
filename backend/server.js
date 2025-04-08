@@ -8,12 +8,13 @@ const rideRoutes = require("./routes/rideRoutes");
 const requestRoutes = require("./routes/requestRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 
+const locationRoutes = require("./routes/locationRoutes");
 
 dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors({ origin: "*", methods: ["GET", "POST"], allowedHeaders: ["Content-Type"] }));
+app.use(cors({ origin: "*", methods: ["GET", "POST","DELETE"], allowedHeaders: ["Content-Type"] }));
 app.use(express.json());
 
 // MongoDB Connection
@@ -28,6 +29,8 @@ app.use('/api', rideRoutes);
 app.use('/api', requestRoutes);
 
 app.use("/api", adminRoutes);
+
+app.use("/api", locationRoutes);
 
 app.get("/", (req, res) => {
   res.send("Server is running! 🚀");

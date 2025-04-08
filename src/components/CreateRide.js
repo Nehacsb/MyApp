@@ -1,6 +1,6 @@
 //import React, { useState } from 'react';
 import React, { useContext, useState, useEffect } from "react";
-
+import { FlatList, Modal, Pressable } from 'react-native';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, Animated, Alert } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -18,9 +18,49 @@ const CreateRide = ({ onBack }) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const fadeAnim = useState(new Animated.Value(0))[0];
-
   const { user } = useContext(AuthContext);//......  
 
+  const [availableLocations, setAvailableLocations] = useState([]);
+  const [filteredSuggestions, setFilteredSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [activeField, setActiveField] = useState(null); // 'source' or 'destination'
+
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const res = await axios.get('http://myapp-production-4538.up.railway.app/api/locations');
+        setAvailableLocations(res.data.locations); // Expecting list like ["Chandigarh", "Mohali", ...]
+      } catch (err) {
+        console.error('Failed to fetch locations', err);
+      }
+    };
+    fetchLocations();
+  }, []);
+
+  const handleLocationInput = (text, type) => {
+    if (type === 'source') setSource(text);
+    else setDestination(text);
+  
+    setActiveField(type);
+    if (text.length >= 1) {
+      const filtered = availableLocations.filter(loc =>
+        loc.toLowerCase().includes(text.toLowerCase())
+      );
+      setFilteredSuggestions(filtered);
+      setShowSuggestions(true);
+    } else {
+      setShowSuggestions(false);
+    }
+  };
+  
+  const selectLocation = (loc) => {
+    if (activeField === 'source') setSource(loc);
+    else if (activeField === 'destination') setDestination(loc);
+  
+    setShowSuggestions(false);
+    setActiveField(null);
+  };
+  
   const validateForm = () => {
     if (!source.trim()) {
       alert('Please enter the source location.');
@@ -63,7 +103,7 @@ const CreateRide = ({ onBack }) => {
       console.log("ride details::::",rideDetails);
 
       // Send ride data to the backend API
-      const response = await axios.post('http://10.0.2.2:5000/api/rides', rideDetails);
+      const response = await axios.post('http://myapp-production-4538.up.railway.app/api/rides', rideDetails);
 
       // Handle success
       Alert.alert('Success', 'Ride created successfully!');
@@ -120,7 +160,7 @@ const CreateRide = ({ onBack }) => {
             placeholder="From"
             placeholderTextColor="#A0AEC0"
             value={source}
-            onChangeText={setSource}
+            onChangeText={(text) => handleLocationInput(text, 'source')}
           />
         </View>
 
@@ -131,9 +171,25 @@ const CreateRide = ({ onBack }) => {
             placeholder="To"
             placeholderTextColor="#A0AEC0"
             value={destination}
-            onChangeText={setDestination}
+            onChangeText={(text) => handleLocationInput(text, 'destination')}
           />
         </View>
+
+        {showSuggestions && (
+  <View style={{ backgroundColor: '#2C3E50', marginHorizontal: 16, borderRadius: 10, maxHeight: 200 }}>
+    <FlatList
+      keyboardShouldPersistTaps='handled'
+      data={filteredSuggestions}
+      keyExtractor={(item, index) => index.toString()}
+      renderItem={({ item }) => (
+        <Pressable onPress={() => selectLocation(item)} style={{ padding: 12, borderBottomColor: '#444', borderBottomWidth: 1 }}>
+          <Text style={{ color: '#fff' }}>{item}</Text>
+        </Pressable>
+      )}
+    />
+  </View>
+)}
+
 
         <TouchableOpacity style={styles.inputContainer} onPress={() => setShowDatePicker(true)}>
           <MaterialIcons name="calendar-today" size={20} color="#FFB22C" style={styles.icon} />
