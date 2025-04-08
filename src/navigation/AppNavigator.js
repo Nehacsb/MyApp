@@ -1,7 +1,7 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect } from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 import { NavigationContainer } from "@react-navigation/native";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, View, Alert } from "react-native";
 import { AuthContext } from "../context/AuthContext";
 import AdminScreen from "../screens/AdminScreen";
 import LoginScreen from "../screens/LoginScreen";
@@ -16,8 +16,28 @@ import Header from "../components/Header";
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
-  const { user, isLoading, isAdmin } = useContext(AuthContext);
-  const [adminConfirmed, setAdminConfirmed] = useState(null); // Start as null to detect change
+  const { user, isLoading, isAdmin, adminConfirmed, setAdminConfirmed } = useContext(AuthContext);
+
+  useEffect(() => {
+    if (user && isAdmin && adminConfirmed === null) {
+      Alert.alert(
+        "Admin Mode",
+        "Do you want to continue as Admin?",
+        [
+          {
+            text: "No",
+            onPress: () => setAdminConfirmed(false),
+            style: "cancel"
+          },
+          { 
+            text: "Yes", 
+            onPress: () => setAdminConfirmed(true) 
+          }
+        ],
+        { cancelable: false }
+      );
+    }
+  }, [user, isAdmin, adminConfirmed]);
 
   if (isLoading) {
     return (
@@ -27,27 +47,11 @@ const AppNavigator = () => {
     );
   }
 
-  if (user && isAdmin && adminConfirmed === null) {
-    return (
-      <LoginScreen
-        navigation={{
-          navigate: (screen) => {
-            if (screen === "AdminScreen") {
-              setAdminConfirmed(true); // Admin pressed Yes
-            } else {
-              setAdminConfirmed(false); // Admin pressed No
-            }
-          },
-        }}
-      />
-    );
-  }
-
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {user ? (
-          adminConfirmed ? (
+          isAdmin && adminConfirmed ? ( // Only show AdminScreen if both conditions are met
             <Stack.Screen name="AdminScreen" component={AdminScreen} />
           ) : (
             <>

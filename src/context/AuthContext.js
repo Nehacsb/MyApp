@@ -8,7 +8,7 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminMode, setAdminMode] = useState(false); // State to toggle admin mode
-
+  const [adminConfirmed, setAdminConfirmed] = useState(null);
   useEffect(() => {
     const loadUser = async () => {
       try {
@@ -53,7 +53,8 @@ export const AuthProvider = ({ children }) => {
 
       setUser(user);
       setIsAdmin(isAdmin);
-      setAdminMode(isAdmin); // If user is admin, set admin mode by default
+      setAdminConfirmed(isAdmin ? null : false);
+      setAdminMode(false); // If user is admin, set admin mode by default
     } catch (error) {
       console.error("Login Error:", error);
       throw error;
@@ -83,6 +84,7 @@ export const AuthProvider = ({ children }) => {
       setUser(user);
       setIsAdmin(false); // ✅ Explicitly set isAdmin state to false
       setAdminMode(false); // ✅ Ensure adminMode is also false for non-admins
+      setAdminConfirmed(null);
     } catch (error) {
       console.error("Signup Error:", error);
       throw error;
@@ -94,6 +96,7 @@ export const AuthProvider = ({ children }) => {
       await AsyncStorage.clear();
       setUser(null);
       setIsAdmin(false);
+      setAdminConfirmed(null);
       setAdminMode(false); // Reset admin mode on logout
     } catch (error) {
       console.error("Logout Error:", error);
@@ -102,9 +105,9 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, isLoading, isAdmin, adminMode, setAdminMode, login, logout, signup, setUser }}
+      value={{ user, isLoading, isAdmin, adminMode, adminConfirmed, setAdminConfirmed,setAdminMode, login, logout, signup, setUser }}
     >
-      {!isLoading && children} {/* Ensure the app doesn't auto-navigate before checking auth */}
+      {!isLoading && children} 
     </AuthContext.Provider>
   );
 };

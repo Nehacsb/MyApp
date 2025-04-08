@@ -4,83 +4,82 @@ import {
 } from "react-native";
 import { AuthContext } from "../context/AuthContext";
 
-// const API_BASE_URL = "http://192.168.248.192:5000/api/admin"; // Replace with actual backend URL
-
 const AdminScreen = () => {
-  const [email, setEmail] = useState("");
-  const [authorizedEmails, setAuthorizedEmails] = useState([]);
+  const [domain, setDomain] = useState("");
+  const [authorizedDomains, setAuthorizedDomains] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const { logout } = useContext(AuthContext);
 
-  // Fetch authorized emails from the backend
+  // Fetch authorized domains from the backend
   useEffect(() => {
-    const fetchEmails = async () => {
+    const fetchDomains = async () => {
       try {
-        const response = await fetch("http://192.168.248.192:5000/api/admin/authorized_emails");
-        const text = await response.text(); // Read raw response text
+        const response = await fetch('http://10.0.2.2:5000/api/admin/authorized_domain');
+        const text = await response.text();
+
         console.log("Raw API response:", text);
 
         if (!response.ok) {
           throw new Error(`HTTP Error! Status: ${response.status}`);
         }
-
-        // Parse JSON only if response is valid
+        console.log("Domains fetched successfully. Updating state...");
+        
         const data = JSON.parse(text);
-        setAuthorizedEmails(data);
+        setAuthorizedDomains(data);
       } catch (error) {
-        console.error("Error fetching emails:", error);
+        console.error("Error fetching domains:", error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchEmails();
+    fetchDomains();
   }, []);
 
-  // Function to add an email
-  const addEmail = async () => {
-    const trimmedEmail = email.trim();
-    if (!trimmedEmail) return;
+  // Function to add a domain
+  const addDomain = async () => {
+    const trimmedDomain = domain.trim();
+    if (!trimmedDomain) return;
 
     try {
-      const response = await fetch("http://192.168.248.192:5000/api/admin/authorize_email", {
+      const response = await fetch('http://10.0.2.2:5000/api/admin/authorize_domain', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: trimmedEmail }),
+        body: JSON.stringify({ domain: trimmedDomain }),
       });
 
-      const text = await response.text(); // Log raw response
+      const text = await response.text();
       console.log("Raw API response:", text);
 
       if (!response.ok) {
         throw new Error(`HTTP Error! Status: ${response.status} - ${text}`);
       }
 
-      setAuthorizedEmails([...authorizedEmails, trimmedEmail]);
-      setEmail("");
+      setAuthorizedDomains([...authorizedDomains, trimmedDomain]);
+      setDomain("");
     } catch (error) {
-      console.error("Error adding email:", error);
+      console.error("Error adding domain:", error);
       Alert.alert("Error", error.message);
     }
   };
 
-  // Function to remove an email
-  const removeEmail = async (emailToRemove) => {
+  // Function to remove a domain
+  const removeDomain = async (domainToRemove) => {
     try {
-      const response = await fetch("http://192.168.248.192:5000/api/admin/remove_email", {
+      const response = await fetch('http://10.0.2.2:5000/api/admin/remove_domain', {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: emailToRemove }),
+        body: JSON.stringify({ domain: domainToRemove }),
       });
 
       if (response.ok) {
-        setAuthorizedEmails(authorizedEmails.filter((email) => email !== emailToRemove));
+        setAuthorizedDomains(authorizedDomains.filter((d) => d !== domainToRemove));
       } else {
         const errorData = await response.json();
-        Alert.alert("Error", errorData.error || "Failed to remove email.");
+        Alert.alert("Error", errorData.error || "Failed to remove domain.");
       }
     } catch (error) {
-      console.error("Error removing email:", error);
+      console.error("Error removing domain:", error);
     }
   };
 
@@ -95,28 +94,28 @@ const AdminScreen = () => {
           {/* Input & Add Button */}
           <View style={styles.inputRow}>
             <TextInput
-              placeholder="Add authorized email"
+              placeholder="Add authorized domain"
               style={styles.input}
-              value={email}
-              onChangeText={setEmail}
+              value={domain}
+              onChangeText={setDomain}
             />
-            <TouchableOpacity style={styles.button} onPress={addEmail}>
+            <TouchableOpacity style={styles.button} onPress={addDomain}>
               <Text style={styles.buttonText}>Add</Text>
             </TouchableOpacity>
           </View>
 
-          {/* Authorized Emails Table */}
+          {/* Authorized Domains Table */}
           <View style={styles.table}>
             <View style={styles.tableHeader}>
-              <Text style={styles.tableHeaderText}>Authorized Emails</Text>
+              <Text style={styles.tableHeaderText}>Authorized Domains</Text>
             </View>
             <FlatList
-              data={authorizedEmails}
+              data={authorizedDomains}
               keyExtractor={(item) => item}
               renderItem={({ item }) => (
                 <View style={styles.tableRow}>
                   <Text style={styles.tableText}>{item}</Text>
-                  <TouchableOpacity onPress={() => removeEmail(item)}>
+                  <TouchableOpacity onPress={() => removeDomain(item)}>
                     <Text style={styles.deleteText}>Remove</Text>
                   </TouchableOpacity>
                 </View>

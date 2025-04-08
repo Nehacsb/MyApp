@@ -12,14 +12,7 @@ const LoginScreen = ({ navigation }) => {
     setIsSubmitting(true);
     try {
       await login(email, password);
-      if (isAdmin) {
-        Alert.alert("Admin Login", "Do you want to continue as admin?", [
-          { text: "No", onPress: () => navigation.navigate("Dashboard") },
-          { text: "Yes", onPress: () => navigation.navigate("AdminScreen") },
-        ]);
-      } else {
-        navigation.navigate("Dashboard");
-      }
+      
     } catch (error) {
       Alert.alert("Login Failed", error.message);
     }

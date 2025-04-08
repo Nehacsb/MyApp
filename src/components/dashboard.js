@@ -1,15 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext  } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, PermissionsAndroid, Platform, Alert } from 'react-native';
 import Geolocation from '@react-native-community/geolocation';
 import MapView, { Marker } from 'react-native-maps';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
+import { AuthContext } from '../context/AuthContext';
 
 const Dashboard = ({ navigation }) => {
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-
+  
+  const { logout } = useContext(AuthContext);
   const showErrorAlert = (message) => {
     Alert.alert(
       'Location Error',
@@ -144,6 +146,9 @@ const Dashboard = ({ navigation }) => {
           <Icon name="account-circle" size={30} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.title}>CabShare</Text>
+        <TouchableOpacity onPress={logout}> 
+          <Icon name="logout" size={30} color="#fff" /> 
+        </TouchableOpacity>
         <TouchableOpacity>
           <Icon name="notifications" size={30} color="#fff" />
         </TouchableOpacity>
