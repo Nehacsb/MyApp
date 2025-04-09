@@ -34,7 +34,7 @@ const AdminScreen = () => {
     const fetchDomains = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch('http://web-production-de29.up.railway.app/api/admin/authorized_domain');
+        const response = await fetch('http://10.0.2.2:5000/api/admin/authorized_domain');
         const data = await handleResponse(response);
         setAuthorizedDomains(Array.isArray(data) ? data : []);
       } catch (error) {
@@ -53,7 +53,7 @@ const AdminScreen = () => {
     if (!trimmedDomain) return;
 
     try {
-      const response = await fetch('http://web-production-de29.up.railway.app/api/admin/authorize_domain', {
+      const response = await fetch('http://10.0.2.2:5000/api/admin/authorize_domain', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ domain: trimmedDomain }),
@@ -72,7 +72,7 @@ const AdminScreen = () => {
   // Remove domain
   const removeDomain = async (domainToRemove) => {
     try {
-      const response = await fetch('http://web-production-de29.up.railway.app/api/admin/remove_domain', {
+      const response = await fetch('http://10.0.2.2:5000/api/admin/remove_domain', {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ domain: domainToRemove }),
@@ -91,7 +91,7 @@ const AdminScreen = () => {
   const fetchLocations = async () => {
     setIsLocationsLoading(true);
     try {
-      const response = await fetch("http://web-production-de29.up.railway.app/api/locations");
+      const response = await fetch("http://10.0.2.2:5000/api/locations");
       const data = await handleResponse(response);
       setLocations(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -108,7 +108,7 @@ const AdminScreen = () => {
     if (!trimmedLocation) return;
     
     try {
-      const response = await fetch("http://web-production-de29.up.railway.app/api/locations", {
+      const response = await fetch("http://10.0.2.2:5000/api/locations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: trimmedLocation }),
@@ -127,19 +127,20 @@ const AdminScreen = () => {
   // Remove location
   const removeLocation = async (locationToRemove) => {
     try {
+      const locationId = locationToRemove._id || locationToRemove.id || locationToRemove;
       const response = await fetch(
-        `http://web-production-de29.up.railway.app/api/locations/${locationToRemove.id || locationToRemove}`, 
+        `http://10.0.2.2:5000/api/locations/${locationId}`, 
         { method: "DELETE" }
       );
       
       await handleResponse(response);
       setLocations(locations.filter(l => 
-        l.id !== locationToRemove.id && l !== locationToRemove
+        (l._id || l.id || l) !== locationId
       ));
       Alert.alert("Success", "Location removed successfully");
     } catch (err) {
       console.error("Error removing location:", err);
-      Alert.alert("Error", "Failed to remove location. Please check your backend endpoint.");
+      Alert.alert("Error", err.message || "Failed to remove location");
     }
   };
 
@@ -149,6 +150,7 @@ const AdminScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      
       <Text style={styles.title}>Admin Panel</Text>
 
       {/* Domain Management */}
