@@ -79,65 +79,96 @@ const SignupScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#FFFFFF", // clean white background
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
-    backgroundColor: "#0F172A", // Deep dark blue background
+    padding: 24,
   },
   title: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: "#ffffff",
-    marginBottom: 5,
+    fontSize: 28,
+    fontWeight: "600",
+    color: "#1F2937", // dark slate gray
+    marginBottom: 8,
+    textAlign: "center",
   },
   subtitle: {
     fontSize: 16,
-    color: "#94A3B8", // Light grayish blue
-    marginBottom: 20,
+    color: "#4B5563", // medium gray for subtitle
+    marginBottom: 24,
+    textAlign: "center",
   },
   input: {
     width: "100%",
-    padding: 14,
-    borderRadius: 12,
-    backgroundColor: "#1E293B", // Dark grayish blue
-    color: "#ffffff",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    backgroundColor: "#F3F4F6", // very light gray for inputs
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    color: "#1F2937",
     fontSize: 16,
-    marginBottom: 15,
+    marginBottom: 16,
   },
   dropdownTrigger: {
     width: "100%",
-    padding: 14,
-    borderRadius: 12,
-    backgroundColor: "#1E293B",
-    marginBottom: 15,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    backgroundColor: "#F3F4F6",
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
     justifyContent: "center",
+    marginBottom: 16,
   },
-  dropdownText: { color: "#ffffff" },
-  modalOverlay: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.4)" },
-  dropdownOptions: { width: "80%", backgroundColor: "#1E293B", borderRadius: 8, padding: 10 },
-  dropdownOption: { padding: 10, borderBottomWidth: 1, borderBottomColor: "#94A3B8" },
-  dropdownOptionText: { color: "#ffffff" },
-  button: {
-    backgroundColor: "#4F46E5", // Royal blue
-    padding: 15,
-    borderRadius: 12,
-    width: "100%",
-    alignItems: "center",
-    shadowColor: "rgba(0, 0, 0, 0.2)",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-  },
-  buttonText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  link: {
-    marginTop: 15,
-    color: "#60A5FA", // Soft blue
+  dropdownText: {
+    color: "#1F2937",
     fontSize: 16,
   },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  dropdownOptions: {
+    width: "80%",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 8,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+  dropdownOption: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
+  },
+  dropdownOptionText: {
+    color: "#1F2937",
+    fontSize: 16,
+  },
+  button: {
+    backgroundColor: "#111827", // formal Uber-like black
+    paddingVertical: 14,
+    borderRadius: 10,
+    width: "100%",
+    alignItems: "center",
+    marginTop: 8,
+  },
+  buttonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  link: {
+    marginTop: 20,
+    color: "#2563EB", // clean blue accent
+    fontSize: 15,
+    textAlign: "center",
+    fontWeight: "500",
+  },
 });
+
 
 export default SignupScreen;

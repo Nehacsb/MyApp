@@ -27,7 +27,7 @@ const FindRide = () => {
         console.error("Please provide a source or destination");
         return;
       }
-      const url = `http://myapp-production-4538.up.railway.app/api/rides/search?source=${from}&destination=${to}`;
+      const url = `http://192.168.225.189:5000/api/rides/search?source=${from}&destination=${to}`;
 
       console.log("Fetching rides from:", url); // Log the URL
 
@@ -67,7 +67,7 @@ const FindRide = () => {
       console.log('Attempting to book ride:', rideId, 'for user:', user.email);
       
       const response = await axios.post(
-        'http://myapp-production-4538.up.railway.app/api/request/book',
+        'http://192.168.225.189:5000/api/request/book',
         { 
           rideId, 
           userEmail: user.email 
@@ -180,18 +180,24 @@ const FindRide = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1E1E2E',
+    backgroundColor: '#F9F9F9',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
     paddingTop: 24,
+    backgroundColor: '#FFFFFF',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontSize: 22,
+    fontWeight: '600',
+    color: '#1A202C',
     marginLeft: 10,
   },
   searchContainer: {
@@ -201,68 +207,76 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2C3E50',
-    borderRadius: 15,
-    padding: 10,
-    marginBottom: 10,
+    backgroundColor: '#F0F0F0',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
   },
   icon: {
     marginRight: 10,
+    color: '#FFB22C',
   },
   input: {
     flex: 1,
     fontSize: 16,
-    color: '#FFFFFF',
+    color: '#1A202C',
   },
   searchButton: {
     backgroundColor: '#FFB22C',
-    borderRadius: 15,
-    padding: 14,
+    borderRadius: 12,
+    paddingVertical: 14,
     alignItems: 'center',
   },
   searchButtonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
+    color: '#1A202C',
+    fontSize: 16,
+    fontWeight: '600',
   },
   rideItem: {
-    backgroundColor: '#2C3E50',
-    borderRadius: 15,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
     padding: 16,
     marginHorizontal: 16,
     marginBottom: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
   rideHeader: {
     borderBottomWidth: 1,
-    borderBottomColor: '#3E5065',
+    borderBottomColor: '#E2E8F0',
     paddingBottom: 8,
     marginBottom: 8,
   },
   rideRoute: {
-    color: '#FFFFFF',
+    color: '#1A202C',
     fontSize: 18,
     fontWeight: 'bold',
   },
   rideDate: {
-    color: '#A0AEC0',
+    color: '#718096',
     fontSize: 14,
   },
   rideDetail: {
-    color: '#FFFFFF',
+    color: '#2D3748',
     fontSize: 16,
-    marginBottom: 8,
+    marginBottom: 6,
   },
   bookButton: {
     backgroundColor: '#FFB22C',
     borderRadius: 10,
-    padding: 10,
+    paddingVertical: 10,
+    marginTop: 10,
     alignItems: 'center',
   },
   bookButtonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
+    color: '#1A202C',
+    fontWeight: '600',
     fontSize: 16,
   },
 });
+
 
 export default FindRide;

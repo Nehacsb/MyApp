@@ -142,17 +142,21 @@ const Dashboard = ({ navigation }) => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity>
-          <Icon name="account-circle" size={30} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.title}>CabShare</Text>
-        <TouchableOpacity onPress={logout}> 
-          <Icon name="logout" size={30} color="#fff" /> 
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <Icon name="notifications" size={30} color="#fff" />
-        </TouchableOpacity>
-      </View>
+  <TouchableOpacity>
+    <Icon name="account-circle" size={30} color="#1C1C1E" />
+  </TouchableOpacity>
+
+  <Text style={styles.title}>CabShare</Text>
+
+  <TouchableOpacity onPress={logout}>
+    <Icon name="logout" size={30} color="#1C1C1E" />
+  </TouchableOpacity>
+
+  <TouchableOpacity>
+    <Icon name="notifications" size={30} color="#1C1C1E" />
+  </TouchableOpacity>
+</View>
+
 
       {/* Banner */}
       <View style={styles.banner}>
@@ -232,85 +236,103 @@ const Dashboard = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: '#121212', 
-    padding: 10 
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    padding: 12,
   },
-  header: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    paddingVertical: 10 
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 4,
   },
-  title: { 
-    fontSize: 24, 
-    fontWeight: 'bold', 
-    color: '#fff' 
+  title: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: '#1C1C1E',
+    textAlign: 'center',
+    flex: 1,
   },
-  banner: { 
-    backgroundColor: '#FFA500', 
-    borderRadius: 10, 
-    padding: 15, 
-    alignItems: 'center', 
-    marginVertical: 10 
+  banner: {
+    backgroundColor: '#F2F2F7',
+    borderRadius: 12,
+    padding: 14,
+    alignItems: 'center',
+    marginVertical: 8,
   },
-  bannerText: { 
-    fontSize: 18, 
-    fontWeight: 'bold', 
-    color: '#fff' 
+  bannerText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#1C1C1E',
   },
   mapContainer: {
     flex: 1,
-    borderRadius: 10,
+    borderRadius: 16,
     overflow: 'hidden',
+    backgroundColor: '#E5E5EA',
     marginVertical: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
-  map: { 
-    width: '100%', 
-    height: '100%' 
+  map: {
+    width: '100%',
+    height: '100%',
   },
-  loadingText: { 
-    color: '#fff', 
-    fontSize: 16,
+  loadingText: {
+    color: '#555555',
+    fontSize: 15,
     textAlign: 'center',
-    margin: 20
+    marginTop: 20,
   },
   errorContainer: {
     alignItems: 'center',
-    padding: 20
+    padding: 20,
   },
-  errorText: { 
-    color: '#ff4444', 
-    fontSize: 16,
+  errorText: {
+    color: '#FF3B30',
+    fontSize: 15,
     textAlign: 'center',
-    marginVertical: 10
+    marginTop: 8,
   },
   retryButton: {
-    backgroundColor: '#FFA500',
+    backgroundColor: '#FF9500',
     paddingHorizontal: 20,
     paddingVertical: 10,
-    borderRadius: 5,
-    marginTop: 10
+    borderRadius: 8,
+    marginTop: 10,
   },
   retryButtonText: {
-    color: '#121212',
-    fontWeight: 'bold'
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
-  actions: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-around', 
-    marginTop: 10 
+  actions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 12,
+    paddingHorizontal: 6,
   },
-  actionButton: { 
-    alignItems: 'center' 
+  actionButton: {
+    alignItems: 'center',
+    backgroundColor: '#F9F9F9',
+    paddingVertical: 14,
+    paddingHorizontal: 10,
+    borderRadius: 14,
+    width: 80,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
-  actionText: { 
-    color: '#fff', 
-    marginTop: 5 
+  actionText: {
+    color: '#1C1C1E',
+    fontSize: 13,
+    marginTop: 6,
+    fontWeight: '500',
+    textAlign: 'center',
   },
 });
+
+
 
 export default Dashboard;

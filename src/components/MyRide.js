@@ -23,13 +23,13 @@ const MyRides = ({ onBack }) => {
         // Fetch rides created by user
 
         console.log("Fetching rides for user:", user.email); // Debugging
-        const createdResponse = await axios.get('http://myapp-production-4538.up.railway.app/api/rides', {
+        const createdResponse = await axios.get('http://192.168.225.189:5000/api/rides', {
           params: { email: user.email },
           headers: { 'Content-Type': 'application/json' }
         });
         console.log('Fetched Created Rides:', createdResponse.data); // Debugging
         // Fetch rides requested by user
-        const requestedResponse = await axios.get('http://myapp-production-4538.up.railway.app/api/request/requests', {
+        const requestedResponse = await axios.get('http://192.168.225.189:5000/api/request/requests', {
           params: { userEmail: user.email },
           headers: { 'Content-Type': 'application/json' }
         });
@@ -179,35 +179,42 @@ const MyRides = ({ onBack }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1E1E2E',
+    backgroundColor: '#F9F9F9',
     paddingHorizontal: 16,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 16,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+    marginBottom: 8,
   },
   backButton: {
     marginRight: 10,
   },
   headerTitle: {
     fontSize: 22,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: '600',
+    color: '#1A202C',
   },
   list: {
     paddingBottom: 20,
   },
   card: {
-    backgroundColor: '#2C3E50',
-    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     padding: 16,
-    marginBottom: 10,
+    marginBottom: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.05,
     shadowRadius: 6,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
   },
   topRow: {
     flexDirection: 'row',
@@ -218,7 +225,7 @@ const styles = StyleSheet.create({
   routeText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: '#1A202C',
   },
   seatContainer: {
     flexDirection: 'row',
@@ -226,7 +233,7 @@ const styles = StyleSheet.create({
   },
   seatText: {
     fontSize: 14,
-    color: '#A0AEC0',
+    color: '#4A5568',
     marginLeft: 5,
   },
   middleRow: {
@@ -236,7 +243,7 @@ const styles = StyleSheet.create({
   },
   dateText: {
     fontSize: 14,
-    color: '#A0AEC0',
+    color: '#718096',
     marginLeft: 5,
   },
   timeIcon: {
@@ -248,25 +255,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   fareText: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#FFB22C',
   },
   statusText: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
   sectionHeader: {
-    backgroundColor: '#1E1E2E',
     paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingHorizontal: 8,
     marginTop: 16,
     marginBottom: 8,
   },
   sectionHeaderText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFB22C',
+    color: '#1A202C',
   },
   loadingContainer: {
     flex: 1,
@@ -275,7 +281,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: '#A0AEC0',
+    color: '#718096',
     marginTop: 10,
   },
   emptyContainer: {
@@ -290,5 +296,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
 });
+
 
 export default MyRides;

@@ -20,7 +20,7 @@ const PendingRequests = ({ onBack }) => {
       console.log("Fetching requests for user:", user.email);
       
       // Get rides created by this user
-      const ridesResponse = await axios.get('http://myapp-production-4538.up.railway.app/api/rides', {
+      const ridesResponse = await axios.get('http://192.168.225.189:5000/api/rides', {
         params: { email: user.email }
       });
 
@@ -30,7 +30,7 @@ const PendingRequests = ({ onBack }) => {
       const rideIds = ridesResponse.data.map(ride => ride._id);
       
       // Get pending requests for these rides
-      const requestsResponse = await axios.get('http://myapp-production-4538.up.railway.app/api/request/requests', {
+      const requestsResponse = await axios.get('http://192.168.225.189:5000/api/request/requests', {
         params: { 
           rideIds: JSON.stringify(rideIds),
           status: 'pending'
@@ -53,14 +53,14 @@ const PendingRequests = ({ onBack }) => {
   const handleRequestAction = async (requestId, action) => {
     try {
       // Update request status
-      await axios.patch(`http://myapp-production-4538.up.railway.app/api/request/requests/${requestId}`, {
+      await axios.patch(`http://192.168.225.189:5000/api/request/requests/${requestId}`, {
         status: action
       });
       
       // If accepted, update ride passengers
       if (action === 'accepted') {
         const request = requests.find(r => r._id === requestId);
-        await axios.patch(`http://myapp-production-4538.up.railway.app/api/request/${request.ride._id}/add-passenger`, {
+        await axios.patch(`http://192.168.225.189:5000/api/request/${request.ride._id}/add-passenger`, {
           userId: request.requester._id
         });
       }
@@ -144,47 +144,52 @@ const PendingRequests = ({ onBack }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1E1E2E',
+    backgroundColor: '#F9FAFB', // Light background
     paddingHorizontal: 16,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 16,
-    marginBottom: 16,
+    paddingTop: 24,
+    paddingBottom: 16,
   },
   backButton: {
-    marginRight: 10,
+    marginRight: 12,
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontSize: 22,
+    fontWeight: '600',
+    color: '#1F2937', // Slate gray
   },
   list: {
-    paddingBottom: 20,
+    paddingBottom: 32,
   },
   card: {
-    backgroundColor: '#2C3E50',
-    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     padding: 16,
     marginBottom: 16,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 3,
   },
   routeText: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: '600',
+    color: '#111827',
     marginBottom: 10,
   },
   dateTimeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 12,
   },
   dateTimeText: {
     fontSize: 14,
-    color: '#A0AEC0',
-    marginLeft: 8,
+    color: '#6B7280',
+    marginLeft: 6,
   },
   timeIcon: {
     marginLeft: 16,
@@ -192,16 +197,16 @@ const styles = StyleSheet.create({
   requesterDetails: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   requesterName: {
-    fontSize: 16,
-    color: '#FFFFFF',
+    fontSize: 15,
+    color: '#1F2937',
     marginLeft: 8,
   },
   requesterEmail: {
     fontSize: 14,
-    color: '#A0AEC0',
+    color: '#6B7280',
     marginLeft: 8,
   },
   actions: {
@@ -210,36 +215,39 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   actionButton: {
-    backgroundColor: '#1E1E2E',
-    borderRadius: 15,
+    borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 20,
     width: '48%',
     alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
+    borderWidth: 1.5,
+    backgroundColor: '#FFFFFF',
   },
   acceptButton: {
-    borderColor: '#4CAF50',
+    borderColor: '#10B981', // Green for accept
   },
   rejectButton: {
-    borderColor: '#F44336',
+    borderColor: '#EF4444', // Red for reject
   },
   actionButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#111827',
   },
   loadingText: {
-    color: '#FFFFFF',
+    color: '#6B7280',
+    fontSize: 16,
     textAlign: 'center',
-    marginTop: 20,
+    marginTop: 40,
   },
   noRequestsText: {
-    color: '#A0AEC0',
+    color: '#9CA3AF',
+    fontSize: 16,
     textAlign: 'center',
-    marginTop: 20,
+    marginTop: 40,
   },
 });
+
+
 
 export default PendingRequests;

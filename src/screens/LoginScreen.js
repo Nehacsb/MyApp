@@ -57,51 +57,55 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-    backgroundColor: "#0F172A", // Deep dark blue background
+    padding: 24,
+    backgroundColor: "#FFFFFF", // Light background
   },
   title: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: "#ffffff",
-    marginBottom: 5,
+    fontSize: 28,
+    fontWeight: "600",
+    color: "#111827", // Dark neutral text
+    textAlign: "center",
+    marginBottom: 6,
   },
   subtitle: {
     fontSize: 16,
-    color: "#94A3B8", // Light grayish blue
-    marginBottom: 20,
+    color: "#6B7280", // Subtle gray
+    textAlign: "center",
+    marginBottom: 24,
   },
   input: {
     width: "100%",
-    padding: 14,
-    borderRadius: 12,
-    backgroundColor: "#1E293B", // Dark grayish blue
-    color: "#ffffff",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    backgroundColor: "#F9FAFB", // Light gray background
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    color: "#111827",
     fontSize: 16,
-    marginBottom: 15,
+    marginBottom: 16,
   },
   button: {
-    backgroundColor: "#4F46E5", // Royal blue
-    padding: 15,
-    borderRadius: 12,
-    width: "100%",
+    backgroundColor: "#111827", // Uber black
+    paddingVertical: 14,
+    borderRadius: 10,
     alignItems: "center",
-    shadowColor: "rgba(0, 0, 0, 0.2)",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    width: "100%",
+    marginTop: 8,
   },
   buttonText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "500",
   },
   link: {
-    marginTop: 15,
-    color: "#60A5FA", // Soft blue
-    fontSize: 16,
+    marginTop: 20,
+    color: "#2563EB", // Formal blue
+    fontSize: 15,
+    textAlign: "center",
+    fontWeight: "500",
   },
 });
+
 
 export default LoginScreen;

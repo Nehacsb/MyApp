@@ -34,7 +34,7 @@ const AdminScreen = () => {
     const fetchDomains = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch('http://myapp-production-4538.up.railway.app/api/admin/authorized_domain');
+        const response = await fetch('http://192.168.225.189:5000/api/admin/authorized_domain');
         const data = await handleResponse(response);
         setAuthorizedDomains(Array.isArray(data) ? data : []);
       } catch (error) {
@@ -53,7 +53,7 @@ const AdminScreen = () => {
     if (!trimmedDomain) return;
 
     try {
-      const response = await fetch('http://myapp-production-4538.up.railway.app/api/admin/authorize_domain', {
+      const response = await fetch('http://192.168.225.189:5000/api/admin/authorize_domain', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ domain: trimmedDomain }),
@@ -72,7 +72,7 @@ const AdminScreen = () => {
   // Remove domain
   const removeDomain = async (domainToRemove) => {
     try {
-      const response = await fetch('http://myapp-production-4538.up.railway.app/api/admin/remove_domain', {
+      const response = await fetch('http://192.168.225.189:5000/api/admin/remove_domain', {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ domain: domainToRemove }),
@@ -91,7 +91,7 @@ const AdminScreen = () => {
   const fetchLocations = async () => {
     setIsLocationsLoading(true);
     try {
-      const response = await fetch("http://myapp-production-4538.up.railway.app/api/locations");
+      const response = await fetch("http://192.168.225.189:5000/api/locations");
       const data = await handleResponse(response);
       setLocations(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -108,7 +108,7 @@ const AdminScreen = () => {
     if (!trimmedLocation) return;
     
     try {
-      const response = await fetch("http://myapp-production-4538.up.railway.app/api/locations", {
+      const response = await fetch("http://192.168.225.189:5000/api/locations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: trimmedLocation }),
@@ -127,19 +127,20 @@ const AdminScreen = () => {
   // Remove location
   const removeLocation = async (locationToRemove) => {
     try {
+      const locationId = locationToRemove._id || locationToRemove.id || locationToRemove;
       const response = await fetch(
-        `http://myapp-production-4538.up.railway.app/api/locations/${locationToRemove.id || locationToRemove}`, 
+        `http://192.168.225.189:5000/api/locations/${locationId}`, 
         { method: "DELETE" }
       );
       
       await handleResponse(response);
       setLocations(locations.filter(l => 
-        l.id !== locationToRemove.id && l !== locationToRemove
+        (l._id || l.id || l) !== locationId
       ));
       Alert.alert("Success", "Location removed successfully");
     } catch (err) {
       console.error("Error removing location:", err);
-      Alert.alert("Error", "Failed to remove location. Please check your backend endpoint.");
+      Alert.alert("Error", err.message || "Failed to remove location");
     }
   };
 
@@ -233,87 +234,94 @@ const AdminScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: "#0F172A",
+    padding: 24,
+    backgroundColor: '#FFFFFF',
   },
   title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#ffffff",
-    marginBottom: 20,
-    textAlign: "center",
+    fontSize: 26,
+    fontWeight: '600',
+    color: '#0F172A',
+    marginBottom: 24,
+    textAlign: 'center',
   },
   section: {
-    marginBottom: 25,
+    marginBottom: 32,
   },
   sectionTitle: {
-    color: '#ffffff',
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10,
+    color: '#0F172A',
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 12,
   },
   inputRow: {
-    flexDirection: "row",
-    width: "100%",
-    marginBottom: 15,
+    flexDirection: 'row',
+    width: '100%',
+    marginBottom: 16,
   },
   input: {
     flex: 1,
-    padding: 14,
-    borderRadius: 8,
-    backgroundColor: "#1E293B",
-    color: "#ffffff",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
     fontSize: 16,
+    color: '#111827',
     marginRight: 10,
   },
   button: {
-    backgroundColor: "#4F46E5",
-    padding: 14,
-    borderRadius: 8,
-    justifyContent: "center",
-    minWidth: 80,
+    backgroundColor: '#111827',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 10,
+    justifyContent: 'center',
   },
   buttonText: {
-    color: "#ffffff",
-    fontWeight: "bold",
-    textAlign: "center",
+    color: '#FFFFFF',
+    fontWeight: '500',
+    fontSize: 15,
+    textAlign: 'center',
   },
   listContainer: {
-    backgroundColor: "#1E293B",
-    borderRadius: 8,
-    padding: 10,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
   listHeader: {
-    color: "#ffffff",
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 10,
-    paddingHorizontal: 5,
+    color: '#0F172A',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
   },
   listItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#475569",
+    borderBottomColor: '#E5E7EB',
   },
   listItemText: {
-    color: "#ffffff",
-    fontSize: 16,
+    fontSize: 15,
+    color: '#1F2937',
   },
   deleteText: {
-    color: "#EF4444",
+    color: '#DC2626',
+    fontWeight: '500',
     fontSize: 14,
-    fontWeight: "bold",
   },
   logoutButton: {
-    backgroundColor: "#DC2626",
-    padding: 14,
-    borderRadius: 8,
-    marginTop: 20,
-    width: "100%",
-    alignItems: "center",
+    backgroundColor: '#DC2626',
+    paddingVertical: 14,
+    borderRadius: 10,
+    marginTop: 24,
+    alignItems: 'center',
   },
 });
+
+
 
 export default AdminScreen;
