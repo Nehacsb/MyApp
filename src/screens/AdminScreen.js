@@ -34,11 +34,7 @@ const AdminScreen = () => {
     const fetchDomains = async () => {
       setIsLoading(true);
       try {
-<<<<<<< HEAD
-        const response = await fetch('http://192.168.225.189:5000/api/admin/authorized_domain');
-=======
-        const response = await fetch('http://10.0.2.2:5000/api/admin/authorized_domain');
->>>>>>> 8a18e49d05699e74e29a28aef43b3d367bbdb903
+        const response = await fetch('http://192.168.225.180:5000/api/admin/authorized_domain');
         const data = await handleResponse(response);
         setAuthorizedDomains(Array.isArray(data) ? data : []);
       } catch (error) {
@@ -57,11 +53,7 @@ const AdminScreen = () => {
     if (!trimmedDomain) return;
 
     try {
-<<<<<<< HEAD
-      const response = await fetch('http://192.168.225.189:5000/api/admin/authorize_domain', {
-=======
-      const response = await fetch('http://10.0.2.2:5000/api/admin/authorize_domain', {
->>>>>>> 8a18e49d05699e74e29a28aef43b3d367bbdb903
+      const response = await fetch('http://192.168.225.180:5000/api/admin/authorize_domain', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ domain: trimmedDomain }),
@@ -80,11 +72,7 @@ const AdminScreen = () => {
   // Remove domain
   const removeDomain = async (domainToRemove) => {
     try {
-<<<<<<< HEAD
-      const response = await fetch('http://192.168.225.189:5000/api/admin/remove_domain', {
-=======
-      const response = await fetch('http://10.0.2.2:5000/api/admin/remove_domain', {
->>>>>>> 8a18e49d05699e74e29a28aef43b3d367bbdb903
+      const response = await fetch('http://192.168.225.180:5000/api/admin/remove_domain', {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ domain: domainToRemove }),
@@ -103,11 +91,7 @@ const AdminScreen = () => {
   const fetchLocations = async () => {
     setIsLocationsLoading(true);
     try {
-<<<<<<< HEAD
-      const response = await fetch("http://192.168.225.189:5000/api/locations");
-=======
-      const response = await fetch("http://10.0.2.2:5000/api/locations");
->>>>>>> 8a18e49d05699e74e29a28aef43b3d367bbdb903
+      const response = await fetch("http://192.168.225.180:5000/api/locations");
       const data = await handleResponse(response);
       setLocations(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -124,11 +108,7 @@ const AdminScreen = () => {
     if (!trimmedLocation) return;
     
     try {
-<<<<<<< HEAD
-      const response = await fetch("http://192.168.225.189:5000/api/locations", {
-=======
-      const response = await fetch("http://10.0.2.2:5000/api/locations", {
->>>>>>> 8a18e49d05699e74e29a28aef43b3d367bbdb903
+      const response = await fetch("http://192.168.225.180:5000/api/locations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: trimmedLocation }),
@@ -149,11 +129,7 @@ const AdminScreen = () => {
     try {
       const locationId = locationToRemove._id || locationToRemove.id || locationToRemove;
       const response = await fetch(
-<<<<<<< HEAD
-        `http://192.168.225.189:5000/api/locations/${locationId}`, 
-=======
-        `http://10.0.2.2:5000/api/locations/${locationId}`, 
->>>>>>> 8a18e49d05699e74e29a28aef43b3d367bbdb903
+        `http://192.168.225.180:5000/api/locations/${locationId}`, 
         { method: "DELETE" }
       );
       

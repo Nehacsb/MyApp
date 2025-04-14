@@ -7,8 +7,12 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [adminMode, setAdminMode] = useState(false); // State to toggle admin mode
+  const [adminMode, setAdminMode] = useState(false); 
   const [adminConfirmed, setAdminConfirmed] = useState(null);
+  const [otpSent, setOtpSent] = useState(false); // To track OTP status
+  const [otpError, setOtpError] = useState(""); // To manage OTP errors
+  const [otp, setOtp] = useState(""); // To store entered OTP
+
   useEffect(() => {
     const loadUser = async () => {
       try {
@@ -33,11 +37,8 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-<<<<<<< HEAD
-      const response = await fetch(`http://192.168.225.189:5000/api/login`, {
-=======
-      const response = await fetch(`http://10.0.2.2:5000/api/login`, {
->>>>>>> 8a18e49d05699e74e29a28aef43b3d367bbdb903
+      console.log("here at login" );
+      const response = await fetch(`http://192.168.225.180:5000/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -67,38 +68,51 @@ export const AuthProvider = ({ children }) => {
 
   const signup = async (firstName, lastName, email, password, phoneNumber, gender) => {
     try {
-<<<<<<< HEAD
-      const response = await fetch("http://192.168.225.189:5000/api/signup", {
-=======
-      const response = await fetch("http://10.0.2.2:5000/api/signup", {
->>>>>>> 8a18e49d05699e74e29a28aef43b3d367bbdb903
+
+      console.log("here at signup");
+      const response = await fetch("http://192.168.225.180:5000/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ firstName, lastName, email, password, phoneNumber, gender }),
       });
-  
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to sign up");
       }
-  
+
+      setOtpSent(true); // OTP sent successfully, so we mark it
       const data = await response.json();
-      const { user, token } = data;
-  
-      await AsyncStorage.setItem("user", JSON.stringify(user));
-      await AsyncStorage.setItem("token", token);
-      await AsyncStorage.setItem("isAdmin", JSON.stringify(false)); // ✅ Set isAdmin to false for new users
-  
-      setUser(user);
-      setIsAdmin(false); // ✅ Explicitly set isAdmin state to false
-      setAdminMode(false); // ✅ Ensure adminMode is also false for non-admins
-      setAdminConfirmed(null);
+      return "OTP sent successfully, please verify it";
     } catch (error) {
       console.error("Signup Error:", error);
       throw error;
     }
   };
-  
+
+  const verifyOTP = async (email, otp) => {
+    try {
+      const response = await fetch("http://192.168.225.180:5000/api/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, otp }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "OTP verification failed");
+      }
+
+      setOtpSent(false); // Reset OTP sent state after verification
+      setOtp(""); // Reset OTP input
+      return "OTP verified successfully";
+    } catch (error) {
+      console.error("Verify OTP Error:", error);
+      setOtpError(error.message || "OTP verification failed");
+      throw error;
+    }
+  };
+
   const logout = async () => {
     try {
       await AsyncStorage.clear();
@@ -113,9 +127,25 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, isLoading, isAdmin, adminMode, adminConfirmed, setAdminConfirmed,setAdminMode, login, logout, signup, setUser }}
+      value={{
+        user,
+        isLoading,
+        isAdmin,
+        adminMode,
+        adminConfirmed,
+        otpSent,
+        otpError,
+        otp,
+        setOtp,
+        setOtpSent,
+        setOtpError,
+        login,
+        logout,
+        signup,
+        verifyOTP,
+      }}
     >
-      {!isLoading && children} 
+      {!isLoading && children}
     </AuthContext.Provider>
   );
 };

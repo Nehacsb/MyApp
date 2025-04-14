@@ -6,7 +6,7 @@ import {
 import { AuthContext } from "../context/AuthContext";
 
 const SignupScreen = ({ navigation }) => {
-  const { signup } = useContext(AuthContext);
+  const { signup, verifyOTP } = useContext(AuthContext);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -15,6 +15,9 @@ const SignupScreen = ({ navigation }) => {
   const [gender, setGender] = useState("");
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpError, setOtpError] = useState("");
 
   const genders = ["Male", "Female"];
 
@@ -24,12 +27,33 @@ const SignupScreen = ({ navigation }) => {
       return;
     }
 
-    setIsSubmitting(true);
     try {
+      setIsSubmitting(true);
+
+      // First step: trigger signup to send OTP
       await signup(firstName, lastName, email, password, phoneNumber, gender);
-      navigation.navigate("Login");
+      setOtpSent(true);
+      alert("OTP sent to your email");
     } catch (error) {
       alert(error.message || "Signup failed");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!otp) {
+      setOtpError("Please enter the OTP");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await verifyOTP(email, otp);
+      alert("Account created successfully!");
+      navigation.navigate("Login");
+    } catch (error) {
+      setOtpError(error.message || "OTP verification failed");
     } finally {
       setIsSubmitting(false);
     }
@@ -39,34 +63,57 @@ const SignupScreen = ({ navigation }) => {
     <View style={styles.container}>
       <Text style={styles.title}>Create an Account</Text>
       <Text style={styles.subtitle}>Join us and start your journey</Text>
-      
-      <TextInput placeholder="First Name" placeholderTextColor="#aaa" value={firstName} onChangeText={setFirstName} style={styles.input} />
-      <TextInput placeholder="Last Name" placeholderTextColor="#aaa" value={lastName} onChangeText={setLastName} style={styles.input} />
-      
-      {/* Gender Dropdown */}
-      <TouchableOpacity onPress={() => setDropdownVisible(true)} style={styles.dropdownTrigger}>
-        <Text style={styles.dropdownText}>{gender || "Select Gender"}</Text>
-      </TouchableOpacity>
-      <Modal visible={dropdownVisible} transparent animationType="fade">
-        <TouchableWithoutFeedback onPress={() => setDropdownVisible(false)}>
-          <View style={styles.modalOverlay}>
-            <View style={styles.dropdownOptions}>
-              {genders.map((item) => (
-                <TouchableOpacity key={item} onPress={() => { setGender(item); setDropdownVisible(false); }} style={styles.dropdownOption}>
-                  <Text style={styles.dropdownOptionText}>{item}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
 
-      <TextInput placeholder="Email" placeholderTextColor="#aaa" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" style={styles.input} />
-      <TextInput placeholder="Phone Number" placeholderTextColor="#aaa" value={phoneNumber} onChangeText={setPhoneNumber} keyboardType="phone-pad" style={styles.input} />
-      <TextInput placeholder="Password" placeholderTextColor="#aaa" value={password} onChangeText={setPassword} secureTextEntry style={styles.input} />
+      {!otpSent && (
+        <>
+          <TextInput placeholder="First Name" placeholderTextColor="#aaa" value={firstName} onChangeText={setFirstName} style={styles.input} />
+          <TextInput placeholder="Last Name" placeholderTextColor="#aaa" value={lastName} onChangeText={setLastName} style={styles.input} />
 
-      <TouchableOpacity style={styles.button} onPress={handleSignup} disabled={isSubmitting}>
-        {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Sign Up</Text>}
+          {/* Gender Dropdown */}
+          <TouchableOpacity onPress={() => setDropdownVisible(true)} style={styles.dropdownTrigger}>
+            <Text style={styles.dropdownText}>{gender || "Select Gender"}</Text>
+          </TouchableOpacity>
+          <Modal visible={dropdownVisible} transparent animationType="fade">
+            <TouchableWithoutFeedback onPress={() => setDropdownVisible(false)}>
+              <View style={styles.modalOverlay}>
+                <View style={styles.dropdownOptions}>
+                  {genders.map((item) => (
+                    <TouchableOpacity key={item} onPress={() => { setGender(item); setDropdownVisible(false); }} style={styles.dropdownOption}>
+                      <Text style={styles.dropdownOptionText}>{item}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
+          </Modal>
+
+          <TextInput placeholder="Email" placeholderTextColor="#aaa" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" style={styles.input} />
+          <TextInput placeholder="Phone Number" placeholderTextColor="#aaa" value={phoneNumber} onChangeText={setPhoneNumber} keyboardType="phone-pad" style={styles.input} />
+          <TextInput placeholder="Password" placeholderTextColor="#aaa" value={password} onChangeText={setPassword} secureTextEntry style={styles.input} />
+        </>
+      )}
+
+      {/* OTP Input Field */}
+      {otpSent && (
+        <>
+          <TextInput
+            placeholder="Enter OTP"
+            placeholderTextColor="#aaa"
+            value={otp}
+            onChangeText={setOtp}
+            keyboardType="numeric"
+            style={styles.input}
+          />
+          {otpError ? <Text style={styles.errorText}>{otpError}</Text> : null}
+        </>
+      )}
+
+      <TouchableOpacity
+        style={styles.button}
+        onPress={otpSent ? handleVerifyOtp : handleSignup}
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{otpSent ? "Verify OTP" : "Sign Up"}</Text>}
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate("Login")}>
@@ -79,7 +126,7 @@ const SignupScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF", // clean white background
+    backgroundColor: "#FFFFFF",
     justifyContent: "center",
     alignItems: "center",
     padding: 24,
@@ -87,13 +134,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: "600",
-    color: "#1F2937", // dark slate gray
+    color: "#1F2937",
     marginBottom: 8,
     textAlign: "center",
   },
   subtitle: {
     fontSize: 16,
-    color: "#4B5563", // medium gray for subtitle
+    color: "#4B5563",
     marginBottom: 24,
     textAlign: "center",
   },
@@ -102,7 +149,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderRadius: 10,
-    backgroundColor: "#F3F4F6", // very light gray for inputs
+    backgroundColor: "#F3F4F6",
     borderWidth: 1,
     borderColor: "#E5E7EB",
     color: "#1F2937",
@@ -149,7 +196,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   button: {
-    backgroundColor: "#111827", // formal Uber-like black
+    backgroundColor: "#111827",
     paddingVertical: 14,
     borderRadius: 10,
     width: "100%",
@@ -163,12 +210,17 @@ const styles = StyleSheet.create({
   },
   link: {
     marginTop: 20,
-    color: "#2563EB", // clean blue accent
+    color: "#2563EB",
     fontSize: 15,
     textAlign: "center",
     fontWeight: "500",
   },
+  errorText: {
+    color: "#F87171",
+    fontSize: 14,
+    marginTop: 8,
+    textAlign: "center",
+  },
 });
-
 
 export default SignupScreen;
