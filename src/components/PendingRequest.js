@@ -53,14 +53,22 @@ const PendingRequests = ({ onBack }) => {
   const handleRequestAction = async (requestId, action) => {
     try {
       // Update request status
+<<<<<<< HEAD
       await axios.patch(`http://192.168.225.189:5000/api/request/requests/${requestId}`, {
+=======
+      await axios.patch(`http://10.0.2.2:5000/api/request/requests/${requestId}`, {
+>>>>>>> 8a18e49d05699e74e29a28aef43b3d367bbdb903
         status: action
       });
       
       // If accepted, update ride passengers
       if (action === 'accepted') {
         const request = requests.find(r => r._id === requestId);
+<<<<<<< HEAD
         await axios.patch(`http://192.168.225.189:5000/api/request/${request.ride._id}/add-passenger`, {
+=======
+        await axios.patch(`http://10.0.2.2:5000/api/request/${request.ride._id}/add-passenger`, {
+>>>>>>> 8a18e49d05699e74e29a28aef43b3d367bbdb903
           userId: request.requester._id
         });
       }

@@ -36,7 +36,11 @@ const CreateRide = ({ onBack }) => {
     // In your fetchLocations function:
 const fetchLocations = async () => {
   try {
+<<<<<<< HEAD
     const res = await axios.get('http://192.168.225.189:5000/api/locations');
+=======
+    const res = await axios.get('http://10.0.2.2:5000/api/locations');
+>>>>>>> 8a18e49d05699e74e29a28aef43b3d367bbdb903
     // Extract just the names from the objects
     const locations = Array.isArray(res.data) 
       ? res.data.map(loc => loc.name) 
@@ -323,33 +327,54 @@ const fetchLocations = async () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+<<<<<<< HEAD
     backgroundColor: '#FFFFFF',
+=======
+    backgroundColor: '#1E1E2E',
+>>>>>>> 8a18e49d05699e74e29a28aef43b3d367bbdb903
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
+<<<<<<< HEAD
     paddingHorizontal: 16,
     paddingTop: Platform.OS === 'ios' ? 60 : 36,
     paddingBottom: 16,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5E5',
+=======
+    padding: 16,
+    paddingTop: Platform.OS === 'ios' ? 50 : 24,
+    marginBottom: 16,
+    backgroundColor: '#1E1E2E',
+>>>>>>> 8a18e49d05699e74e29a28aef43b3d367bbdb903
   },
   backButton: {
     marginRight: 12,
   },
   headerTitle: {
     fontSize: 20,
+<<<<<<< HEAD
     fontWeight: '600',
     color: '#000000',
   },
   formContainer: {
     paddingHorizontal: 16,
     paddingTop: 8,
+=======
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  formContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 20,
+>>>>>>> 8a18e49d05699e74e29a28aef43b3d367bbdb903
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+<<<<<<< HEAD
     backgroundColor: '#F6F6F6',
     borderRadius: 10,
     paddingHorizontal: 14,
@@ -361,10 +386,25 @@ const styles = StyleSheet.create({
   icon: {
     marginRight: 12,
     color: '#5F5F5F',
+=======
+    backgroundColor: '#2C3E50',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  icon: {
+    marginRight: 12,
+>>>>>>> 8a18e49d05699e74e29a28aef43b3d367bbdb903
   },
   input: {
     flex: 1,
     fontSize: 16,
+<<<<<<< HEAD
     color: '#111111',
   },
   suggestionsContainer: {
@@ -385,24 +425,60 @@ const styles = StyleSheet.create({
   },
   suggestionText: {
     color: '#1A1A1A',
+=======
+    color: '#FFFFFF',
+    paddingVertical: 2,
+  },
+  suggestionsContainer: {
+    position: 'absolute',
+    backgroundColor: '#3E5065',
+    borderRadius: 12,
+    maxHeight: 200,
+    zIndex: 1000,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+  },
+  suggestionItem: {
+    padding: 14,
+    borderBottomColor: '#4A5C6E',
+    borderBottomWidth: 1,
+  },
+  suggestionText: {
+    color: '#FFFFFF',
+>>>>>>> 8a18e49d05699e74e29a28aef43b3d367bbdb903
     fontSize: 16,
   },
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+<<<<<<< HEAD
     marginVertical: 16,
+=======
+    marginBottom: 24,
+    marginTop: 8,
+>>>>>>> 8a18e49d05699e74e29a28aef43b3d367bbdb903
   },
   checkbox: {
     width: 22,
     height: 22,
+<<<<<<< HEAD
     borderRadius: 4,
     borderWidth: 1.5,
     borderColor: '#000000',
+=======
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: '#FFB22C',
+>>>>>>> 8a18e49d05699e74e29a28aef43b3d367bbdb903
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 10,
+    marginRight: 12,
   },
   checked: {
+<<<<<<< HEAD
     backgroundColor: '#000000',
   },
   checkboxLabel: {
@@ -421,6 +497,32 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 17,
     fontWeight: '600',
+=======
+    backgroundColor: '#2C3E50',
+  },
+  checkboxLabel: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    fontWeight: '500',
+  },
+  button: {
+    backgroundColor: '#FFB22C',
+    borderRadius: 12,
+    padding: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  buttonText: {
+    color: '#1E1E2E',
+    fontSize: 18,
+    fontWeight: 'bold',
+>>>>>>> 8a18e49d05699e74e29a28aef43b3d367bbdb903
   },
 });
 
