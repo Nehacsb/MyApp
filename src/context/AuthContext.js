@@ -33,11 +33,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-<<<<<<< HEAD
-      const response = await fetch(`http://192.168.225.189:5000/api/login`, {
-=======
       const response = await fetch(`http://10.0.2.2:5000/api/login`, {
->>>>>>> 8a18e49d05699e74e29a28aef43b3d367bbdb903
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -67,11 +63,7 @@ export const AuthProvider = ({ children }) => {
 
   const signup = async (firstName, lastName, email, password, phoneNumber, gender) => {
     try {
-<<<<<<< HEAD
-      const response = await fetch("http://192.168.225.189:5000/api/signup", {
-=======
       const response = await fetch("http://10.0.2.2:5000/api/signup", {
->>>>>>> 8a18e49d05699e74e29a28aef43b3d367bbdb903
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ firstName, lastName, email, password, phoneNumber, gender }),

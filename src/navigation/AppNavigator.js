@@ -13,6 +13,9 @@ import MyRides from "../components/MyRide";
 import PendingRequests from "../components/PendingRequest";
 import Header from "../components/Header";
 
+import DomainManagement from "../components/DomainManagement";
+import LocationManagement from "../components/LocationManagement";
+
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
@@ -52,7 +55,11 @@ const AppNavigator = () => {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {user ? (
           isAdmin && adminConfirmed ? ( // Only show AdminScreen if both conditions are met
+            <>
             <Stack.Screen name="AdminScreen" component={AdminScreen} />
+            <Stack.Screen name="DomainManagement" component={DomainManagement} />
+            <Stack.Screen name="LocationManagement" component={LocationManagement} />
+            </>
           ) : (
             <>
               <Stack.Screen
