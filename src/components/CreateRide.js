@@ -36,7 +36,7 @@ const CreateRide = ({ onBack }) => {
     // In your fetchLocations function:
 const fetchLocations = async () => {
   try {
-    const res = await axios.get('http://192.168.225.180:5000/api/locations');
+    const res = await axios.get('http://192.168.225.30:5000/api/locations');
     // Extract just the names from the objects
     const locations = Array.isArray(res.data) 
       ? res.data.map(loc => loc.name) 
@@ -117,7 +117,7 @@ const fetchLocations = async () => {
       console.log("ride details::::",rideDetails);
 
       // Send ride data to the backend API
-      const response = await axios.post('http://192.168.225.180:5000/api/rides', rideDetails);
+      const response = await axios.post('http://192.168.225.30:5000/api/rides', rideDetails);
 
       // Handle success
       Alert.alert('Success', 'Ride created successfully!');

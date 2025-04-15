@@ -27,7 +27,7 @@ const FindRide = () => {
         console.error("Please provide a source or destination");
         return;
       }
-      const url = `http://192.168.225.180:5000/api/rides/search?source=${from}&destination=${to}`;
+      const url = `http://192.168.225.30:5000/api/rides/search?source=${from}&destination=${to}`;
 
       console.log("Fetching rides from:", url); // Log the URL
 
@@ -67,7 +67,7 @@ const FindRide = () => {
       console.log('Attempting to book ride:', rideId, 'for user:', user.email);
       
       const response = await axios.post(
-        'http://192.168.225.180:5000/api/request/book',
+        'http://192.168.225.30:5000/api/request/book',
         { 
           rideId, 
           userEmail: user.email 

@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       console.log("here at login" );
-      const response = await fetch(`http://192.168.225.180:5000/api/login`, {
+      const response = await fetch(`http://192.168.225.30:5000/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -70,7 +70,7 @@ export const AuthProvider = ({ children }) => {
     try {
 
       console.log("here at signup");
-      const response = await fetch("http://192.168.225.180:5000/api/signup", {
+      const response = await fetch("http://192.168.225.30:5000/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ firstName, lastName, email, password, phoneNumber, gender }),
@@ -81,8 +81,16 @@ export const AuthProvider = ({ children }) => {
         throw new Error(errorData.message || "Failed to sign up");
       }
 
-      setOtpSent(true); // OTP sent successfully, so we mark it
-      const data = await response.json();
+      
+      await response.json(); // Just consume the message
+
+      // Don't set user or token yet — do that after OTP is verified
+      setOtpSent(true);
+      setIsAdmin(false);
+      setAdminMode(false);
+      setAdminConfirmed(null);
+
+
       return "OTP sent successfully, please verify it";
     } catch (error) {
       console.error("Signup Error:", error);
@@ -92,7 +100,7 @@ export const AuthProvider = ({ children }) => {
 
   const verifyOTP = async (email, otp) => {
     try {
-      const response = await fetch("http://192.168.225.180:5000/api/verify-otp", {
+      const response = await fetch("http://192.168.225.30:5000/api/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, otp }),
@@ -103,9 +111,23 @@ export const AuthProvider = ({ children }) => {
         throw new Error(errorData.message || "OTP verification failed");
       }
 
-      setOtpSent(false); // Reset OTP sent state after verification
-      setOtp(""); // Reset OTP input
+      const data = await response.json();
+      const { user, token, isAdmin } = data;
+
+      await AsyncStorage.setItem("user", JSON.stringify(user));
+      await AsyncStorage.setItem("token", token);
+      await AsyncStorage.setItem("isAdmin", JSON.stringify(isAdmin || false));
+
+
+      setUser(user);
+      setIsAdmin(isAdmin);
+      setAdminMode(false);
+      setAdminConfirmed(isAdmin ? null : false);
+
+      setOtpSent(false);
+      setOtp("");
       return "OTP verified successfully";
+
     } catch (error) {
       console.error("Verify OTP Error:", error);
       setOtpError(error.message || "OTP verification failed");
@@ -133,6 +155,9 @@ export const AuthProvider = ({ children }) => {
         isAdmin,
         adminMode,
         adminConfirmed,
+        setAdminConfirmed,
+        setAdminMode,
+        setUser,
         otpSent,
         otpError,
         otp,

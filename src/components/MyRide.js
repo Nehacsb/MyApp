@@ -23,13 +23,13 @@ const MyRides = ({ onBack }) => {
         // Fetch rides created by user
 
         console.log("Fetching rides for user:", user.email); // Debugging
-        const createdResponse = await axios.get('http://192.168.225.180:5000/api/rides', {
+        const createdResponse = await axios.get('http://192.168.225.30:5000/api/rides', {
           params: { email: user.email },
           headers: { 'Content-Type': 'application/json' }
         });
         console.log('Fetched Created Rides:', createdResponse.data); // Debugging
         // Fetch rides requested by user
-        const requestedResponse = await axios.get('http://192.168.225.180:5000/api/request/requests', {
+        const requestedResponse = await axios.get('http://192.168.225.30:5000/api/request/requests', {
           params: { userEmail: user.email },
           headers: { 'Content-Type': 'application/json' }
         });

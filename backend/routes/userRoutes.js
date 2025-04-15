@@ -72,7 +72,7 @@ router.post("/verify-otp", async (req, res) => {
   });
 
 
-
+  const isAdmin=false;
   await newUser.save();
   const token = generateToken(newUser._id);
 
@@ -89,6 +89,7 @@ router.post("/verify-otp", async (req, res) => {
       gender,
     },
     token,
+    isAdmin,
   });
 });
 
