@@ -117,7 +117,7 @@ const fetchLocations = async () => {
       console.log("ride details::::",rideDetails);
 
       // Send ride data to the backend API
-      const response = await axios.post('http://192.168.225.180:5000/api/rides', rideDetails);
+      const response = await axios.post('http://192.168.225.30:5000/api/rides', rideDetails);
 
       // Handle success
       Alert.alert('Success', 'Ride created successfully!');

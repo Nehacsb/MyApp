@@ -12,6 +12,8 @@ import FindRide from "../components/FindRide";
 import MyRides from "../components/MyRide";
 import PendingRequests from "../components/PendingRequest";
 import Header from "../components/Header";
+import DomainManagement from "../components/DomainManagement";
+import LocationManagement from "../components/LocationManagement";
 
 import DomainManagement from "../components/DomainManagement";
 import LocationManagement from "../components/LocationManagement";

@@ -131,7 +131,7 @@ const Dashboard = ({ navigation }) => {
     };
 
     // Start the location process
-    getCurrentLocation();
+    //getCurrentLocation();
 
     return () => {
       isMounted = false;
