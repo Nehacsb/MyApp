@@ -20,7 +20,7 @@ const PendingRequests = ({ onBack }) => {
       console.log("Fetching requests for user:", user.email);
       
       // Get rides created by this user
-      const ridesResponse = await axios.get('http://10.2.0.0:5000/api/rides', {
+      const ridesResponse = await axios.get('http://10.0.2.2:5000/api/rides', {
         params: { email: user.email }
       });
 

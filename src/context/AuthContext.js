@@ -97,7 +97,7 @@ export const AuthProvider = ({ children }) => {
 
   const verifyOTP = async (email, otp) => {
     try {
-      const response = await fetch("http://192.168.225.30:5000/api/verify-otp", {
+      const response = await fetch("http://10.0.2.2:5000/api/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, otp }),

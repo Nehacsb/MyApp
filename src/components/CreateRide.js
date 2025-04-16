@@ -7,7 +7,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import axios from 'axios'; // Import axios for API calls
 import { AuthContext } from '../context/AuthContext'; // Import AuthContext
 
-const CreateRide = ({ onBack }) => {
+const CreateRide = ({ navigation }) => {
   const [source, setSource] = useState('');
   const [destination, setDestination] = useState('');
   const [date, setDate] = useState(new Date());
@@ -117,7 +117,7 @@ const fetchLocations = async () => {
       console.log("ride details::::",rideDetails);
 
       // Send ride data to the backend API
-      const response = await axios.post('http://192.168.225.30:5000/api/rides', rideDetails);
+      const response = await axios.post('http://10.0.2.2:5000/api/rides', rideDetails);
 
       // Handle success
       Alert.alert('Success', 'Ride created successfully!');
@@ -169,9 +169,9 @@ const fetchLocations = async () => {
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
     {/* Header */}
     <View style={styles.header}>
-      <TouchableOpacity onPress={onBack} style={styles.backButton}>
-        <MaterialIcons name="arrow-back" size={24} color="#FFB22C" />
-      </TouchableOpacity>
+    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+  <MaterialIcons name="arrow-back" size={24} color="#FFB22C" />
+</TouchableOpacity>
       <Text style={styles.headerTitle}>Create a Ride</Text>
     </View>
 
@@ -323,112 +323,104 @@ const fetchLocations = async () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1E1E2E',
+    backgroundColor: '#FFFFFF',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    paddingTop: Platform.OS === 'ios' ? 50 : 24,
-    marginBottom: 16,
-    backgroundColor: '#1E1E2E',
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'ios' ? 60 : 36,
+    paddingBottom: 16,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
   },
   backButton: {
     marginRight: 12,
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: '600',
+    color: '#000000',
   },
   formContainer: {
     paddingHorizontal: 16,
-    paddingBottom: 20,
+    paddingTop: 8,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2C3E50',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: '#F6F6F6',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#E2E2E2',
   },
   icon: {
     marginRight: 12,
+    color: '#5F5F5F',
   },
   input: {
     flex: 1,
     fontSize: 16,
-    color: '#FFFFFF',
-    paddingVertical: 2,
+    color: '#111111',
   },
   suggestionsContainer: {
     position: 'absolute',
-    backgroundColor: '#3E5065',
-    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
     maxHeight: 200,
     zIndex: 1000,
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
+    elevation: 4,
+    marginTop: 2,
   },
   suggestionItem: {
     padding: 14,
-    borderBottomColor: '#4A5C6E',
+    borderBottomColor: '#F1F1F1',
     borderBottomWidth: 1,
   },
   suggestionText: {
-    color: '#FFFFFF',
+    color: '#1A1A1A',
     fontSize: 16,
   },
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
-    marginTop: 8,
+    marginVertical: 16,
   },
   checkbox: {
     width: 22,
     height: 22,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: '#FFB22C',
+    borderRadius: 4,
+    borderWidth: 1.5,
+    borderColor: '#000000',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
   checked: {
-    backgroundColor: '#2C3E50',
+    backgroundColor: '#000000',
   },
   checkboxLabel: {
     fontSize: 16,
-    color: '#FFFFFF',
-    fontWeight: '500',
+    color: '#000000',
   },
   button: {
-    backgroundColor: '#FFB22C',
-    borderRadius: 12,
-    padding: 18,
+    backgroundColor: '#000000',
+    borderRadius: 10,
+    paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 5,
+    marginTop: 20,
   },
   buttonText: {
-    color: '#1E1E2E',
-    fontSize: 18,
-    fontWeight: 'bold',
+    color: '#FFFFFF',
+    fontSize: 17,
+    fontWeight: '600',
   },
 });
 
