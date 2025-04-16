@@ -1,11 +1,14 @@
-// components/DomainManagement.js
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, Alert, SafeAreaView } from "react-native";
+import { View, Text, Platform,PermissionsAndroid,TextInput, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, Alert, SafeAreaView, Button } from "react-native";
+import { pick, types } from '@react-native-documents/picker';
+import RNFS from 'react-native-fs';
+import XLSX from 'xlsx';
 
 const DomainManagement = () => {
   const [domain, setDomain] = useState("");
   const [authorizedDomains, setAuthorizedDomains] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasError, setHasError] = useState(false); // To track if error occurs during upload
 
   // Helper function to handle API responses
   const handleResponse = async (response) => {
@@ -77,6 +80,134 @@ const DomainManagement = () => {
     }
   };
 
+  const requestStoragePermission = async () => {
+      if (Platform.OS === 'android') {
+        try {
+          let granted = false;
+    
+          if (Platform.Version >= 33) {
+            // Android 13+ (API 33)
+            const readMediaPermission = await PermissionsAndroid.request(
+              PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
+              {
+                title: 'Media Permission Required',
+                message: 'App needs access to your media to upload CSV files',
+                buttonNeutral: 'Ask Me Later',
+                buttonNegative: 'Cancel',
+                buttonPositive: 'OK',
+              }
+            );
+    
+            granted = readMediaPermission === PermissionsAndroid.RESULTS.GRANTED;
+          } else if (Platform.Version >= 30) {
+            // Android 11 & 12
+            const manageStoragePermission = await PermissionsAndroid.request(
+              'android.permission.MANAGE_EXTERNAL_STORAGE'
+            );
+    
+            granted = manageStoragePermission === PermissionsAndroid.RESULTS.GRANTED;
+          } else {
+            // Android 10 and below
+            const readPermission = await PermissionsAndroid.request(
+              PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+              {
+                title: 'Storage Permission Required',
+                message: 'App needs access to your storage to upload CSV files',
+                buttonNeutral: 'Ask Me Later',
+                buttonNegative: 'Cancel',
+                buttonPositive: 'OK',
+              }
+            );
+    
+            granted = readPermission === PermissionsAndroid.RESULTS.GRANTED;
+          }
+    
+          return granted;
+        } catch (err) {
+          console.warn('Permission error:', err);
+          return false;
+        }
+      }
+      return true;
+    };
+
+  // Upload XLSX file
+  const uploadXLSX = async () => {
+    setHasError(false); // Reset error state before starting upload
+    const hasPermission = await requestStoragePermission();
+    if (!hasPermission) return;
+
+    try {
+      const [file] = await pick({ type: [types.allFiles] });
+
+      if (!file || !file.uri || !file.name.toLowerCase().endsWith('.xlsx')) {
+        Alert.alert('Invalid File', 'Please upload a valid XLSX file.');
+        return;
+      }
+
+      const filePath = file.uri.replace('content://', ''); // Clean URI for Android content resolver
+
+      const fileData = await RNFS.readFile(file.uri, 'base64');
+      const workbook = XLSX.read(fileData, { type: 'base64' });
+
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+
+      const parsedData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+      const nameColumnIndex = parsedData[0].findIndex((header) => header?.toString().toLowerCase() === 'domain');
+
+      if (nameColumnIndex === -1) {
+        Alert.alert('Error', 'XLSX must contain a "name" column');
+        return;
+      }
+
+      const newDomains = parsedData
+        .slice(1) // skip header row
+        .map((row) => row[nameColumnIndex]?.trim())
+        .filter(Boolean);
+
+      console.log('Parsed domains:', newDomains);
+
+      // Only proceed with domain upload if there are valid domains
+      if (newDomains.length === 0) {
+        Alert.alert('No Valid Domains', 'No valid domains were found in the uploaded file.');
+        return;
+      }
+
+      setIsLoading(true); // Start loading state
+
+      // Upload each domain
+      for (const domainName of newDomains) {
+        try {
+          const response = await fetch('http://192.168.225.207:5000/api/admin/authorize_domain', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ domain: domainName }),
+          });
+
+          if (!response.ok) throw new Error(`Failed to add domain: ${domainName}`);
+        } catch (error) {
+          console.error(error);
+          setHasError(true); // Set error state if any domain fails
+          Alert.alert('Error', `Failed to add domain: ${domainName}`);
+          break; // Stop on error and show alert
+        }
+      }
+
+      if (!hasError) {
+        Alert.alert('Success', 'XLSX domains uploaded successfully');
+        fetchDomains(); // Refresh the list after uploading
+      }
+    } catch (err) {
+      //fetchDomains();
+      //console.error('Error uploading XLSX:', err);
+      setHasError(true); // Set error state if an error occurs during the file reading or parsing
+      //Alert.alert('Error', 'Failed to upload XLSX. Please try again.');
+    } finally {
+      setIsLoading(false); // Stop loading state
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Domain Management</Text>
@@ -91,6 +222,8 @@ const DomainManagement = () => {
           <Text style={styles.addButtonText}>Add</Text>
         </TouchableOpacity>
       </View>
+
+      <Button title="Upload XLSX" onPress={uploadXLSX} />
 
       {isLoading ? (
         <ActivityIndicator size="small" color="#4F46E5" />
