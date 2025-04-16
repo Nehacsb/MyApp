@@ -7,7 +7,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import axios from 'axios'; // Import axios for API calls
 import { AuthContext } from '../context/AuthContext'; // Import AuthContext
 
-const CreateRide = ({ onBack }) => {
+const CreateRide = ({ navigation }) => {
   const [source, setSource] = useState('');
   const [destination, setDestination] = useState('');
   const [date, setDate] = useState(new Date());
@@ -36,7 +36,7 @@ const CreateRide = ({ onBack }) => {
     // In your fetchLocations function:
 const fetchLocations = async () => {
   try {
-    const res = await axios.get('http://192.168.225.30:5000/api/locations');
+    const res = await axios.get('http://192.168.225.207:5000/api/locations');
     // Extract just the names from the objects
     const locations = Array.isArray(res.data) 
       ? res.data.map(loc => loc.name) 
@@ -117,7 +117,7 @@ const fetchLocations = async () => {
       console.log("ride details::::",rideDetails);
 
       // Send ride data to the backend API
-      const response = await axios.post('http://192.168.225.30:5000/api/rides', rideDetails);
+      const response = await axios.post('http://192.168.225.207:5000/api/rides', rideDetails);
 
       // Handle success
       Alert.alert('Success', 'Ride created successfully!');
@@ -169,9 +169,9 @@ const fetchLocations = async () => {
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
     {/* Header */}
     <View style={styles.header}>
-      <TouchableOpacity onPress={onBack} style={styles.backButton}>
-        <MaterialIcons name="arrow-back" size={24} color="#FFB22C" />
-      </TouchableOpacity>
+    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+  <MaterialIcons name="arrow-back" size={24} color="#FFB22C" />
+</TouchableOpacity>
       <Text style={styles.headerTitle}>Create a Ride</Text>
     </View>
 

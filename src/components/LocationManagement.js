@@ -1,29 +1,45 @@
-// components/LocationManagement.js
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, Alert, SafeAreaView } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  FlatList,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+  SafeAreaView,
+  Platform,
+  PermissionsAndroid,
+  Linking,
+  Button,
+} from "react-native";
+import { pick, types } from '@react-native-documents/picker';
+import RNFS from 'react-native-fs';
+import Papa from 'papaparse';
+import XLSX from 'xlsx';
+
 
 const LocationManagement = () => {
   const [location, setLocation] = useState("");
   const [locations, setLocations] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Helper function to handle API responses
   const handleResponse = async (response) => {
     const contentType = response.headers.get("content-type");
     if (!response.ok) {
       const error = contentType?.includes("application/json")
         ? (await response.json()).error
         : await response.text();
-      throw new Error(error || `HTTP Error! Status: ${response.status}`);
+      throw new Error(error ||` HTTP Error! Status: ${response.status}`);
     }
     return contentType?.includes("application/json") ? await response.json() : await response.text();
   };
 
-  // Fetch locations on mount
   const fetchLocations = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch("http://192.168.225.30:5000/api/locations");
+      const response = await fetch("http://192.168.225.207:5000/api/locations");
       const data = await handleResponse(response);
       setLocations(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -38,13 +54,12 @@ const LocationManagement = () => {
     fetchLocations();
   }, []);
 
-  // Add location
   const addLocation = async () => {
     const trimmedLocation = location.trim();
     if (!trimmedLocation) return;
 
     try {
-      const response = await fetch("http://192.168.225.30:5000/api/locations", {
+      const response = await fetch("http://192.168.225.207:5000/api/locations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: trimmedLocation }),
@@ -59,11 +74,10 @@ const LocationManagement = () => {
     }
   };
 
-  // Remove location
   const removeLocation = async (locationToRemove) => {
     try {
       const locationId = locationToRemove._id || locationToRemove.id || locationToRemove;
-      const response = await fetch(`http://192.168.225.30:5000/api/locations/${locationId}`, { method: "DELETE" });
+      const response = await fetch(`http://192.168.225.207:5000/api/locations/${locationId}`, { method: "DELETE" });
       await handleResponse(response);
       setLocations(locations.filter(l => (l._id || l.id || l) !== locationId));
       Alert.alert("Success", "Location removed successfully");
@@ -73,9 +87,121 @@ const LocationManagement = () => {
     }
   };
 
+  const requestStoragePermission = async () => {
+    if (Platform.OS === 'android') {
+      try {
+        let granted = false;
+  
+        if (Platform.Version >= 33) {
+          // Android 13+ (API 33)
+          const readMediaPermission = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
+            {
+              title: 'Media Permission Required',
+              message: 'App needs access to your media to upload CSV files',
+              buttonNeutral: 'Ask Me Later',
+              buttonNegative: 'Cancel',
+              buttonPositive: 'OK',
+            }
+          );
+  
+          granted = readMediaPermission === PermissionsAndroid.RESULTS.GRANTED;
+        } else if (Platform.Version >= 30) {
+          // Android 11 & 12
+          const manageStoragePermission = await PermissionsAndroid.request(
+            'android.permission.MANAGE_EXTERNAL_STORAGE'
+          );
+  
+          granted = manageStoragePermission === PermissionsAndroid.RESULTS.GRANTED;
+        } else {
+          // Android 10 and below
+          const readPermission = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+            {
+              title: 'Storage Permission Required',
+              message: 'App needs access to your storage to upload CSV files',
+              buttonNeutral: 'Ask Me Later',
+              buttonNegative: 'Cancel',
+              buttonPositive: 'OK',
+            }
+          );
+  
+          granted = readPermission === PermissionsAndroid.RESULTS.GRANTED;
+        }
+  
+        return granted;
+      } catch (err) {
+        console.warn('Permission error:', err);
+        return false;
+      }
+    }
+    return true;
+  };
+  
+  
+
+  const uploadCSV = async () => {
+    const hasPermission = await requestStoragePermission();
+    if (!hasPermission) return;
+  
+    try {
+      const [file] = await pick({ type: [types.allFiles] });
+  
+      if (!file || !file.uri || !file.name.toLowerCase().endsWith('.xlsx')) {
+        Alert.alert('Invalid File', 'Please upload a valid XLSX file.');
+        return;
+      }
+  
+      const filePath = file.uri.replace('content://', ''); // Clean URI for Android content resolver
+  
+      const fileData = await RNFS.readFile(file.uri, 'base64');
+      const workbook = XLSX.read(fileData, { type: 'base64' });
+  
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+  
+      const parsedData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+      const nameColumnIndex = parsedData[0].findIndex((header) => header?.toString().toLowerCase() === 'name');
+  
+      if (nameColumnIndex === -1) {
+        Alert.alert('Error', 'XLSX must contain a "name" column');
+        return;
+      }
+  
+      const newLocations = parsedData
+        .slice(1) // skip header row
+        .map((row) => row[nameColumnIndex]?.trim())
+        .filter(Boolean);
+
+      console.log('Parsed locations:', newLocations);
+  
+      for (const locName of newLocations) {
+        try {
+          const response = await fetch('http://192.168.225.207:5000/api/locations', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: locName }),
+          });
+  
+          if (!response.ok) throw new Error(`Failed to add location: ${locName}`);
+        } catch (error) {
+          console.error(error);
+        }
+      }
+  
+      Alert.alert('Success', 'XLSX locations uploaded successfully');
+      fetchLocations();
+    } catch (err) {
+      console.error('Error uploading XLSX:', err);
+      Alert.alert('Error', 'Failed to upload XLSX. Please try again.');
+    }
+  };
+  
+
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Location Management</Text>
+
       <View style={styles.inputRow}>
         <TextInput
           placeholder="Add location"
@@ -87,6 +213,8 @@ const LocationManagement = () => {
           <Text style={styles.addButtonText}>Add</Text>
         </TouchableOpacity>
       </View>
+
+      <Button title="Upload CSV" onPress={uploadCSV} />
 
       {isLoading ? (
         <ActivityIndicator size="small" color="#4F46E5" />
@@ -146,7 +274,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 10,
     justifyContent: "center",
-    // Shadow styling
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
