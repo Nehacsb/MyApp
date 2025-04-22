@@ -3,8 +3,11 @@ import { View, Text, Platform,PermissionsAndroid,TextInput, TouchableOpacity, Fl
 import { pick, types } from '@react-native-documents/picker';
 import RNFS from 'react-native-fs';
 import XLSX from 'xlsx';
+import { useNavigation } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const DomainManagement = () => {
+  const navigation = useNavigation(); 
   const [domain, setDomain] = useState("");
   const [authorizedDomains, setAuthorizedDomains] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -179,7 +182,7 @@ const DomainManagement = () => {
       // Upload each domain
       for (const domainName of newDomains) {
         try {
-          const response = await fetch('http://192.168.225.207:5000/api/admin/authorize_domain', {
+          const response = await fetch('http://10.0.2.2:5000/api/admin/authorize_domain', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ domain: domainName }),
@@ -210,6 +213,9 @@ const DomainManagement = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+                      <Icon name="arrow-back" size={24} color="#000" />
+                  </TouchableOpacity>
       <Text style={styles.title}>Domain Management</Text>
       <View style={styles.inputRow}>
         <TextInput
@@ -324,6 +330,14 @@ const styles = StyleSheet.create({
     color: "#DC2626",
     fontWeight: "500",
     fontSize: 14,
+  },
+  backButton: {
+    marginBottom: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    alignSelf: "flex-start",
+    backgroundColor: "#E5E7EB",
+    borderRadius: 8,
   },
 });
 

@@ -5,7 +5,7 @@ import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const FindRide = () => {
+const FindRide = ({navigation}) => {
   const { userToken } = useContext(AuthContext);
   const [rides, setRides] = useState([]);
   const [from, setFrom] = useState('');
@@ -104,7 +104,9 @@ const FindRide = () => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <MaterialIcons name="arrow-back" size={24} color="white" />
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <MaterialIcons name="arrow-back" size={24} color="#FFB22C" />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Find a Ride</Text>
       </View>
 

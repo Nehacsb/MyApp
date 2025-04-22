@@ -4,7 +4,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 
-const PendingRequests = ({ onBack }) => {
+const PendingRequests = ({navigation} ) => {
   const { user } = useContext(AuthContext);
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -119,7 +119,7 @@ const PendingRequests = ({ onBack }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} style={styles.backButton}>
+      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <MaterialIcons name="arrow-back" size={24} color="#FFB22C" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Incoming Requests</Text>

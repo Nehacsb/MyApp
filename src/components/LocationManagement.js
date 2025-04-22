@@ -18,9 +18,11 @@ import { pick, types } from '@react-native-documents/picker';
 import RNFS from 'react-native-fs';
 import Papa from 'papaparse';
 import XLSX from 'xlsx';
-
+import { useNavigation } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const LocationManagement = () => {
+  const navigation = useNavigation(); 
   const [location, setLocation] = useState("");
   const [locations, setLocations] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -177,7 +179,7 @@ const LocationManagement = () => {
   
       for (const locName of newLocations) {
         try {
-          const response = await fetch('http://192.168.225.207:5000/api/locations', {
+          const response = await fetch('http://10.0.2.2:5000/api/locations', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name: locName }),
@@ -200,6 +202,9 @@ const LocationManagement = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+                            <Icon name="arrow-back" size={24} color="#000" />
+                        </TouchableOpacity>
       <Text style={styles.title}>Location Management</Text>
 
       <View style={styles.inputRow}>
@@ -314,6 +319,14 @@ const styles = StyleSheet.create({
     color: "#DC2626",
     fontWeight: "500",
     fontSize: 14,
+  },
+  backButton: {
+    marginBottom: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    alignSelf: "flex-start",
+    backgroundColor: "#E5E7EB",
+    borderRadius: 8,
   },
 });
 

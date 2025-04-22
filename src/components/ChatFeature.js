@@ -37,30 +37,32 @@ const ChatFeature = ({ route, navigation }) => {
 
     const handleSendMessage = async () => {
         if (!newMessage.trim()) return;
-
+    
+        const fullName = `${user.firstName} ${user.lastName || ''}`.trim();
+    
         try {
             const messageToSend = {
                 rideId,
                 content: newMessage,
                 timestamp: new Date().toISOString(),
-                senderId: user._id,       // From your AuthContext
-                senderName: user.name
+                senderId: user._id,
+                senderName: fullName,
             };
-
+    
             // Optimistic UI update
+            const tempId = Date.now().toString();
             setMessages(prev => [...prev, {
                 ...messageToSend,
                 senderId: user._id,
-                senderName: user.name,
-                _id: Date.now().toString() // temporary ID
+                senderName: fullName,
+                _id: tempId // temporary ID
             }]);
             setNewMessage('');
-
+            console.log('Optimistically added message:', messageToSend);
+    
             // Send to server
-            await axios.post(`http://10.0.2.2:5000/api/chat/${rideId}`, {
-                content: newMessage
-            });
-
+            await axios.post(`http://10.0.2.2:5000/api/chat/${rideId}`, messageToSend);
+    
             // Refetch messages to get the actual data from server
             const response = await axios.get(`http://10.0.2.2:5000/api/chat/${rideId}`);
             setMessages(response.data);
@@ -68,9 +70,10 @@ const ChatFeature = ({ route, navigation }) => {
             console.error('Error sending message:', error);
             Alert.alert('Error', 'Failed to send message');
             // Revert optimistic update
-            setMessages(prev => prev.filter(m => m._id !== Date.now().toString()));
+            setMessages(prev => prev.filter(m => m._id !== tempId));
         }
     };
+    
 
     const renderMessage = ({ item }) => {
         const isCurrentUser = item.senderId === user._id;

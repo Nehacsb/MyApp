@@ -6,7 +6,7 @@ import { AuthContext } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import ChatFeature from './ChatFeature'; // Import the Chat component
 
-const MyRides = ({ onBack }) => {
+const MyRides = () => {
   const navigation = useNavigation();
   const [ridesData, setRidesData] = useState({
     createdRides: [],
@@ -162,7 +162,7 @@ const MyRides = ({ onBack }) => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} style={styles.backButton}>
+      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Icon name="arrow-left" size={24} color="#FFB22C" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>My Rides</Text>
