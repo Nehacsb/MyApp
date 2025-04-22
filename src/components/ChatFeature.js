@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Alert } from 'react-native';
+import {
+    View, Text, StyleSheet, TextInput,
+    TouchableOpacity, FlatList, Alert
+} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
@@ -14,16 +17,17 @@ const ChatFeature = ({ route, navigation }) => {
     useEffect(() => {
         navigation.setOptions({
             title: `${rideDetails.start} → ${rideDetails.destination}`,
+            headerRight: () => (
+                <TouchableOpacity onPress={() => navigation.navigate('RidePeopleScreen', { rideId })}>
+                    <Icon name="account-group" size={24} color="#fff" style={{ marginRight: 15 }} />
+                </TouchableOpacity>
+            ),
         });
-        console.log('Ride ID:', rideId);
-        console.log('Ride Details:', rideDetails);
-      
+
         const fetchMessages = async () => {
-            console.log('Fetching messages for ride ID:', rideId);
             try {
                 const response = await axios.get(`http://10.0.2.2:5000/api/chat/${rideId}`);
                 setMessages(response.data);
-                console.log('Fetched messages:', response.data);
             } catch (error) {
                 console.error('Error fetching messages_feature:', error);
                 Alert.alert('Error', 'Failed to load chat messages');
@@ -35,11 +39,19 @@ const ChatFeature = ({ route, navigation }) => {
         fetchMessages();
     }, [rideId]);
 
+    const getColorForUser = (name) => {
+        const colors = ['#FFB22C', '#91D8E4', '#FF6969', '#AEDB9D', '#9D9DF2'];
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) {
+            hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return colors[Math.abs(hash) % colors.length];
+    };
+
     const handleSendMessage = async () => {
         if (!newMessage.trim()) return;
-    
         const fullName = `${user.firstName} ${user.lastName || ''}`.trim();
-    
+
         try {
             const messageToSend = {
                 rideId,
@@ -48,40 +60,30 @@ const ChatFeature = ({ route, navigation }) => {
                 senderId: user._id,
                 senderName: fullName,
             };
-    
-            // Optimistic UI update
+
             const tempId = Date.now().toString();
-            setMessages(prev => [...prev, {
-                ...messageToSend,
-                senderId: user._id,
-                senderName: fullName,
-                _id: tempId // temporary ID
-            }]);
+            setMessages(prev => [...prev, { ...messageToSend, _id: tempId }]);
             setNewMessage('');
-            console.log('Optimistically added message:', messageToSend);
-    
-            // Send to server
+
             await axios.post(`http://10.0.2.2:5000/api/chat/${rideId}`, messageToSend);
-    
-            // Refetch messages to get the actual data from server
             const response = await axios.get(`http://10.0.2.2:5000/api/chat/${rideId}`);
             setMessages(response.data);
         } catch (error) {
             console.error('Error sending message:', error);
             Alert.alert('Error', 'Failed to send message');
-            // Revert optimistic update
-            setMessages(prev => prev.filter(m => m._id !== tempId));
         }
     };
-    
 
     const renderMessage = ({ item }) => {
         const isCurrentUser = item.senderId === user._id;
+        const backgroundColor = isCurrentUser
+            ? '#FFB22C'
+            : getColorForUser(item.senderName);
 
         return (
             <View style={[
                 styles.messageContainer,
-                isCurrentUser ? styles.currentUserMessage : styles.otherUserMessage
+                { alignSelf: isCurrentUser ? 'flex-end' : 'flex-start', backgroundColor }
             ]}>
                 {!isCurrentUser && (
                     <Text style={styles.senderName}>{item.senderName}</Text>
@@ -102,12 +104,22 @@ const ChatFeature = ({ route, navigation }) => {
                 </View>
             ) : (
                 <>
+                    {/* Ride Info Header */}
+                    {/* <TouchableOpacity
+                        style={styles.rideInfoHeader}
+                        onPress={() => navigation.navigate('RidePeopleScreen', { rideId, rideDetails })}
+                    >
+                        <View style={styles.rideInfoTextContainer}>
+                            <Text style={styles.rideInfoLabel}>Ride:</Text>
+                            <Text style={styles.rideInfoRoute}>{rideDetails.start} → {rideDetails.destination}</Text>
+                        </View>
+                        <Icon name="chevron-right" size={24} color="#555" />
+                    </TouchableOpacity> */}
                     <FlatList
                         data={messages}
                         renderItem={renderMessage}
                         keyExtractor={(item) => item._id}
                         contentContainerStyle={styles.messagesList}
-                        inverted
                     />
                     <View style={styles.inputContainer}>
                         <TextInput
@@ -130,7 +142,7 @@ const ChatFeature = ({ route, navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F5F5F5',
+        backgroundColor: '#FFF8F0', // Soft theme background
     },
     loadingContainer: {
         flex: 1,
@@ -145,16 +157,6 @@ const styles = StyleSheet.create({
         padding: 10,
         borderRadius: 10,
         marginBottom: 10,
-    },
-    currentUserMessage: {
-        alignSelf: 'flex-end',
-        backgroundColor: '#FFB22C',
-        borderTopRightRadius: 0,
-    },
-    otherUserMessage: {
-        alignSelf: 'flex-start',
-        backgroundColor: '#FFFFFF',
-        borderTopLeftRadius: 0,
     },
     senderName: {
         fontWeight: 'bold',
@@ -191,6 +193,30 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    rideInfoHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 15,
+        paddingVertical: 10,
+        backgroundColor: '#FFFBEF',
+        borderBottomWidth: 1,
+        borderBottomColor: '#EEE',
+    },
+    rideInfoTextContainer: {
+        flexDirection: 'column',
+    },
+    rideInfoLabel: {
+        fontSize: 12,
+        color: '#888',
+        marginBottom: 2,
+    },
+    rideInfoRoute: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#333',
+    },
+    
 });
 
 export default ChatFeature;

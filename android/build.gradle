@@ -18,5 +18,13 @@ buildscript {
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
     }
 }
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' } // (Optional, if needed for other dependencies)
+        maven { url 'https://dl.bintray.com/maplibre/maplibre-gl-native' } 
+    }
+}
 
 apply plugin: "com.facebook.react.rootproject"
