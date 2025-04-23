@@ -4,7 +4,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 
-const PendingRequests = ({navigation} ) => {
+const PendingRequests = ({ navigation }) => {
   const { user } = useContext(AuthContext);
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,15 +17,10 @@ const PendingRequests = ({navigation} ) => {
 
   const fetchPendingRequests = async () => {
     try {
-      console.log("Fetching requests for user:", user.email);
-      
       // Get rides created by this user
       const ridesResponse = await axios.get('http://10.0.2.2:5000/api/rides', {
         params: { email: user.email }
       });
-
-      console.log('Fetched Rides:', ridesResponse.data); // Debugging
-      
       
       const rideIds = ridesResponse.data.map(ride => ride._id);
       
@@ -37,87 +32,128 @@ const PendingRequests = ({navigation} ) => {
         }
       });
       
-      setRequests(requestsResponse.data);
+      // Ensure we have an array of requests
+      const requestsArray = Array.isArray(requestsResponse.data) ? 
+        requestsResponse.data : 
+        [];
+      
+      setRequests(requestsArray);
     } catch (error) {
-      console.error('Fetch error:', {
-        message: error.message,
-        response: error.response?.data,
-        config: error.config
-      });
-      Alert.alert('Error', 'Failed to load requests. Please try again.');
+      console.error('Fetch error:', error);
+      Alert.alert(
+        'Error', 
+        error.response?.data?.message || 'Failed to load requests. Please try again.'
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRequestAction = async (requestId, action) => {
+  const handleAddPassenger = async (rideId, userId, seats) => {
     try {
-      // Update request status
-      await axios.patch(`http://10.0.2.2:5000/api/request/requests/${requestId}`, {
-        status: action
-      });
-      
-      // If accepted, update ride passengers
-      if (action === 'accepted') {
-        const request = requests.find(r => r._id === requestId);
-        await axios.patch(`http://10.0.2.2:5000/api/request/${request.ride._id}/add-passenger`, {
-          userId: request.requester._id
-        });
-      }
-      
-      Alert.alert('Success', `Request ${action}`);
-      fetchPendingRequests(); // Refresh the list
+      console.log('Adding passenger:', { rideId, userId, seats });
+      await axios.patch(
+        `http://10.0.2.2:5000/api/request/${rideId}/add-passenger`,
+        { userId, seats }
+      );
     } catch (error) {
-      console.error('Update error:', error.response?.data || error.message);
-      Alert.alert('Error', `Failed to ${action} request`);
+      console.error('Error adding passenger:', error);
+      throw error;
     }
   };
 
-  const renderRequestItem = ({ item }) => (
-    <View style={styles.card}>
-      <Text style={styles.routeText}>
-        {item.ride.source} → {item.ride.destination}
-      </Text>
+  const handleRequestAction = async (requestId, action, rideId, userId, seats) => {
+    try {
+      // First update the request status
+      const response = await axios.patch(
+        `http://10.0.2.2:5000/api/request/requests/${requestId}`,
+        { status: action }
+      );
       
-      <View style={styles.dateTimeContainer}>
-        <MaterialIcons name="calendar-today" size={16} color="#A0AEC0" />
-        <Text style={styles.dateTimeText}>
-          {new Date(item.ride.date).toLocaleDateString()}
-        </Text>
-        <MaterialIcons name="access-time" size={16} color="#A0AEC0" style={styles.timeIcon} />
-        <Text style={styles.dateTimeText}>{item.ride.time}</Text>
-      </View>
+      console.log('Request status updated:', response.data);
+      
+      // If accepted, add the passenger(s)
+      if (action === 'accepted') {
+        console.log('Adding passenger:', { rideId, userId, seats });
+        await handleAddPassenger(rideId, userId, seats);
+      }
 
-      <View style={styles.requesterDetails}>
-        <MaterialIcons name="person" size={16} color="#FFB22C" />
-        <Text style={styles.requesterName}>
-          {item.requester.firstName} {item.requester.lastName}
-        </Text>
-      </View>
-      <View style={styles.requesterDetails}>
-        <MaterialIcons name="email" size={16} color="#FFB22C" />
-        <Text style={styles.requesterEmail}>{item.requester.email}</Text>
-      </View>
+      Alert.alert(
+        'Success', 
+        `Request ${action} for ${seats} seat${seats !== 1 ? 's' : ''}`
+      );
+      fetchPendingRequests();
+    } catch (error) {
+      console.error('Error in handleRequestAction:', error);
+      Alert.alert(
+        'Error', 
+        error.response?.data?.message || `Failed to ${action} request`
+      );
+    }
+  };
 
-      <View style={styles.actions}>
-        <TouchableOpacity
-          style={[styles.actionButton, styles.acceptButton]}
-          onPress={() => handleRequestAction(item._id, 'accepted')}
-        >
-          <Text style={styles.actionButtonText}>Accept</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.actionButton, styles.rejectButton]}
-          onPress={() => handleRequestAction(item._id, 'rejected')}
-        >
-          <Text style={styles.actionButtonText}>Reject</Text>
-        </TouchableOpacity>
+  const renderRequestItem = ({ item }) => {
+    const seats = item.seats || 1; // Default to 1 if seats field doesn't exist
+    
+    return (
+      <View style={styles.card}>
+        <View style={styles.routeHeader}>
+          <Text style={styles.routeText}>
+            {item.ride.source} → {item.ride.destination}
+          </Text>
+          <View style={styles.seatsBadge}>
+            <MaterialIcons name="event-seat" size={16} color="#FFFFFF" />
+            <Text style={styles.seatsText}>{seats}</Text>
+          </View>
+        </View>
+        
+        <View style={styles.dateTimeContainer}>
+          <MaterialIcons name="calendar-today" size={16} color="#A0AEC0" />
+          <Text style={styles.dateTimeText}>
+            {new Date(item.ride.date).toLocaleDateString()}
+          </Text>
+          <MaterialIcons name="access-time" size={16} color="#A0AEC0" style={styles.timeIcon} />
+          <Text style={styles.dateTimeText}>{item.ride.time}</Text>
+        </View>
+
+        <View style={styles.requesterDetails}>
+          <MaterialIcons name="person" size={16} color="#FFB22C" />
+          <Text style={styles.requesterName}>
+            {item.requester.firstName} {item.requester.lastName}
+          </Text>
+        </View>
+        <View style={styles.requesterDetails}>
+          <MaterialIcons name="email" size={16} color="#FFB22C" />
+          <Text style={styles.requesterEmail}>{item.requester.email}</Text>
+        </View>
+
+        <View style={styles.actions}>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.acceptButton]}
+            onPress={() => handleRequestAction(
+              item._id, 
+              'accepted',
+              item.ride._id,
+              item.requester._id,
+              seats
+            )}
+          >
+            <Text style={styles.actionButtonText}>Accept ({seats})</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.rejectButton]}
+            onPress={() => handleRequestAction(item._id, 'rejected')}
+          >
+            <Text style={styles.actionButtonText}>Reject</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <View style={styles.container}>
+    
       <View style={styles.header}>
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <MaterialIcons name="arrow-back" size={24} color="#FFB22C" />
@@ -126,15 +162,22 @@ const PendingRequests = ({navigation} ) => {
       </View>
 
       {loading ? (
-        <Text style={styles.loadingText}>Loading requests...</Text>
+        <View style={styles.loadingContainer}>
+          <MaterialIcons name="hourglass-empty" size={32} color="#A0AEC0" />
+          <Text style={styles.loadingText}>Loading requests...</Text>
+        </View>
       ) : requests.length === 0 ? (
-        <Text style={styles.noRequestsText}>No pending requests</Text>
+        <View style={styles.emptyContainer}>
+          <MaterialIcons name="check-circle" size={32} color="#A0AEC0" />
+          <Text style={styles.noRequestsText}>No pending requests</Text>
+        </View>
       ) : (
         <FlatList
           data={requests}
           renderItem={renderRequestItem}
           keyExtractor={item => item._id}
           contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
         />
       )}
     </View>
@@ -144,7 +187,7 @@ const PendingRequests = ({navigation} ) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB', // Light background
+    backgroundColor: '#F9FAFB',
     paddingHorizontal: 16,
   },
   header: {
@@ -159,7 +202,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: '600',
-    color: '#1F2937', // Slate gray
+    color: '#1F2937',
   },
   list: {
     paddingBottom: 32,
@@ -175,11 +218,32 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 3,
   },
+  routeHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
   routeText: {
     fontSize: 18,
     fontWeight: '600',
     color: '#111827',
-    marginBottom: 10,
+    flex: 1,
+  },
+  seatsBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFB22C',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginLeft: 8,
+  },
+  seatsText: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    fontWeight: '600',
+    marginLeft: 4,
   },
   dateTimeContainer: {
     flexDirection: 'row',
@@ -224,30 +288,38 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   acceptButton: {
-    borderColor: '#10B981', // Green for accept
+    borderColor: '#10B981',
   },
   rejectButton: {
-    borderColor: '#EF4444', // Red for reject
+    borderColor: '#EF4444',
   },
   actionButtonText: {
     fontSize: 15,
     fontWeight: '600',
     color: '#111827',
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   loadingText: {
     color: '#6B7280',
     fontSize: 16,
     textAlign: 'center',
-    marginTop: 40,
+    marginTop: 12,
   },
   noRequestsText: {
     color: '#9CA3AF',
     fontSize: 16,
     textAlign: 'center',
-    marginTop: 40,
+    marginTop: 12,
   },
 });
-
-
 
 export default PendingRequests;

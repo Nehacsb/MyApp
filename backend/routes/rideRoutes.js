@@ -95,47 +95,48 @@ router.get('/rides', async (req, res) => {
 });
 
   // GET /api/rides/search - Find available rides based on source and/or destination
+  // Modify the search endpoint to filter by minimum seats
   router.get('/rides/search', async (req, res) => {
     try {
-      const { source, destination } = req.query;
+      const { source, destination, minSeats } = req.query;
+      let query = {};
+      console.log("here_rides_search",source,destination,minSeats);
+      if (source) {
+        query.source = { $regex: source, $options: 'i' };
+      }
       
-      console.log("Received query params:", req.query); // Log request params
-  
-      // Check if at least source or destination is provided
-      if (!source && !destination) {
-        return res.status(400).json({ message: 'Please provide source or destination to search rides.' });
+      if (destination) {
+        query.destination = { $regex: destination, $options: 'i' };
       }
   
-      // Build the query dynamically
-      let query = {};
-      if (source) query.source = { $regex: new RegExp(source, 'i') }; // Case-insensitive match
-      if (destination) query.destination = { $regex: new RegExp(destination, 'i') };
+      // Add minSeats filter if provided
+      if (minSeats && !isNaN(minSeats)) {
+        const seatsNum = parseInt(minSeats);
+        query.$expr = {
+          $gte: [
+            { $subtract: ['$maxCapacity', { $size: '$passengers' }] },
+            seatsNum
+          ]
+        };
+      }
   
       const rides = await Ride.find(query)
-        .populate('createdBy', 'firstName lastName email')
-        .populate('passengers', 'firstName lastName email')
-        .sort({ date: 1, time: 1 });
+        .populate('createdBy', 'firstName lastName email phoneNumber')
+        .lean();
   
-      // Format response for frontend
-      const formattedRides = rides.map(ride => ({
-        _id: ride._id,
-        source: ride.source,
-        destination: ride.destination,
-        date: ride.date,
-        time: ride.time,
-        maxCapacity: ride.maxCapacity,
-        totalFare: ride.totalFare,
-        isFemaleOnly: ride.isFemaleOnly,
-        email: ride.email,
-        createdBy: ride.createdBy,
-        passengers: ride.passengers,
-        seatsLeft: ride.maxCapacity - ride.passengers.length
-      }));
+      // Calculate available seats and enhance ride data
+      const enhancedRides = rides.map(ride => {
+        const passengersCount = ride.passengers?.length || 0;
+        return {
+          ...ride,
+          seatsLeft: ride.maxCapacity - passengersCount,
+          driver: ride.createdBy // For frontend consistency
+        };
+      });
   
-      res.status(200).json(formattedRides);
+      res.json(enhancedRides);
     } catch (error) {
-      console.error('Error searching rides:', error);
-      res.status(500).json({ message: 'Failed to search rides', error: error.message });
+      res.status(500).json({ message: error.message });
     }
   });
 

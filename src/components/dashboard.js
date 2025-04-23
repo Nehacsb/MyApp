@@ -98,20 +98,16 @@ const Dashboard = ({ navigation }) => {
           <Icon name="account-circle" size={30} color="#1C1C1E" />
         </TouchableOpacity>
 
-        <Text style={styles.title}>CabShare</Text>
+        <Text style={styles.title}>RideMate</Text>
 
-         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <TouchableOpacity>
-                    <Icon name="notifications" size={28} color="#4A4E69" style={{ marginRight: 12 }} />
-                  </TouchableOpacity>
-        
-                  <TouchableOpacity onPress={logout}>
-                    <Icon name="logout" size={28} color="#4A4E69" />
-                  </TouchableOpacity>
-                </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <TouchableOpacity onPress={logout}>
+            <Icon name="logout" size={28} color="#4A4E69" />
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* Banner */}
+      {/* Highlighted Banner */}
       <View style={styles.banner}>
         <Text style={styles.bannerText}>Find a ride, Share a ride</Text>
       </View>
@@ -159,6 +155,9 @@ const Dashboard = ({ navigation }) => {
         )}
       </View>
 
+      {/* Separator Line */}
+      <View style={styles.separator} />
+
       {/* Quick Actions */}
       <View style={styles.actions}>
         <TouchableOpacity 
@@ -194,196 +193,111 @@ const Dashboard = ({ navigation }) => {
   );
 };
 
-// Add these new styles to your existing StyleSheet
 const styles = StyleSheet.create({
   container: {
-
     flex: 1,
-
     backgroundColor: '#FFFFFF',
-
     padding: 12,
-
   },
-
   header: {
-
     flexDirection: 'row',
-
     alignItems: 'center',
-
     justifyContent: 'space-between',
-
     paddingVertical: 12,
-
     paddingHorizontal: 4,
-
   },
-
   title: {
-
     fontSize: 22,
-
     fontWeight: '600',
-
     color: '#1C1C1E',
-
     textAlign: 'center',
-
     flex: 1,
-
   },
-
   banner: {
-
-    backgroundColor: '#F2F2F7',
-
+    backgroundColor: '#FFA500', // Changed to orange for highlight
     borderRadius: 12,
-
     padding: 14,
-
     alignItems: 'center',
-
     marginVertical: 8,
-
-  },
-
-  bannerText: {
-
-    fontSize: 16,
-
-    fontWeight: '500',
-
-    color: '#1C1C1E',
-
-  },
-
-  mapContainer: {
-
-    flex: 1,
-
-    borderRadius: 16,
-
-    overflow: 'hidden',
-
-    backgroundColor: '#E5E5EA',
-
-    marginVertical: 10,
-
-  },
-
-  map: {
-
-    width: '100%',
-
-    height: '100%',
-
-  },
-
-  loadingText: {
-
-    color: '#555555',
-
-    fontSize: 15,
-
-    textAlign: 'center',
-
-    marginTop: 20,
-
-  },
-
-  errorContainer: {
-
-    alignItems: 'center',
-
-    padding: 20,
-
-  },
-
-  errorText: {
-
-    color: '#FF3B30',
-
-    fontSize: 15,
-
-    textAlign: 'center',
-
-    marginTop: 8,
-
-  },
-
-  retryButton: {
-
-    backgroundColor: '#FF9500',
-
-    paddingHorizontal: 20,
-
-    paddingVertical: 10,
-
-    borderRadius: 8,
-
-    marginTop: 10,
-
-  },
-
-  retryButtonText: {
-
-    color: '#FFFFFF',
-
-    fontWeight: '600',
-
-  },
-
-  actions: {
-
-    flexDirection: 'row',
-
-    justifyContent: 'space-between',
-
-    marginTop: 12,
-
-    paddingHorizontal: 6,
-
-  },
-
-  actionButton: {
-
-    alignItems: 'center',
-
-    backgroundColor: '#F9F9F9',
-
-    paddingVertical: 14,
-
-    paddingHorizontal: 10,
-
-    borderRadius: 14,
-
-    width: 80,
-
     elevation: 2,
-
     shadowColor: '#000',
-
-    shadowOffset: { width: 0, height: 1 },
-
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-
-    shadowRadius: 2,
-
+    shadowRadius: 4,
   },
-
-  actionText: {
-
-    color: '#1C1C1E',
-
-    fontSize: 13,
-
-    marginTop: 6,
-
-    fontWeight: '500',
-
+  bannerText: {
+    fontSize: 16,
+    fontWeight: '600', // Made bolder
+    color: '#FFFFFF', // Changed to white for contrast
+  },
+  mapContainer: {
+    flex: 1,
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: '#E5E5EA',
+    marginVertical: 10,
+  },
+  map: {
+    width: '100%',
+    height: '100%',
+  },
+  loadingText: {
+    color: '#555555',
+    fontSize: 15,
     textAlign: 'center',
-
+    marginTop: 20,
+  },
+  errorContainer: {
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    color: '#FF3B30',
+    fontSize: 15,
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  retryButton: {
+    backgroundColor: '#FF9500',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+    marginTop: 10,
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  separator: {
+    height: 1,
+    backgroundColor: '#000',
+    marginVertical: 8,
+  },
+  actions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 12,
+    paddingHorizontal: 6,
+  },
+  actionButton: {
+    alignItems: 'center',
+    backgroundColor: '#F9F9F9',
+    paddingVertical: 14,
+    paddingHorizontal: 10,
+    borderRadius: 14,
+    width: 80,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  actionText: {
+    color: '#1C1C1E',
+    fontSize: 13,
+    marginTop: 6,
+    fontWeight: '500',
+    textAlign: 'center',
   },
   annotationContainer: {
     width: 30,

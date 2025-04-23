@@ -1,29 +1,28 @@
-//import React, { useState } from 'react';
-import React, { useContext, useState, useEffect,useRef } from "react";
-import { FlatList, Modal, Pressable } from 'react-native';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, Animated, Alert } from 'react-native';
+import React, { useContext, useState, useEffect, useRef } from "react";
+import { FlatList, View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, Animated, Alert } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import axios from 'axios'; // Import axios for API calls
-import { AuthContext } from '../context/AuthContext'; // Import AuthContext
+import axios from 'axios';
+import { AuthContext } from '../context/AuthContext';
 
 const CreateRide = ({ navigation }) => {
   const [source, setSource] = useState('');
   const [destination, setDestination] = useState('');
   const [date, setDate] = useState(new Date());
   const [time, setTime] = useState(new Date());
-  const [maxCapacity, setMaxCapacity] = useState('');
+  const [maxCapacity, setMaxCapacity] = useState(1);
   const [totalFare, setTotalFare] = useState('');
   const [isFemaleOnly, setIsFemaleOnly] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const fadeAnim = useState(new Animated.Value(0))[0];
-  const { user } = useContext(AuthContext);//......  
+  const { user } = useContext(AuthContext);
 
   const [availableLocations, setAvailableLocations] = useState([]);
   const [filteredSuggestions, setFilteredSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [activeField, setActiveField] = useState(null); // 'source' or 'destination'
+  const [activeField, setActiveField] = useState(null);
+  const [otherSeatsInput, setOtherSeatsInput] = useState('');
 
   const sourceInputRef = useRef(null);
   const destInputRef = useRef(null);
@@ -33,21 +32,18 @@ const CreateRide = ({ navigation }) => {
   });
 
   useEffect(() => {
-    // In your fetchLocations function:
-const fetchLocations = async () => {
-  try {
-    const res = await axios.get('http://10.0.2.2:5000/api/locations');
-    // Extract just the names from the objects
-    const locations = Array.isArray(res.data) 
-      ? res.data.map(loc => loc.name) 
-      : (res.data.locations || []).map(loc => loc.name);
-    console.log("Fetched locations:", locations);
-    setAvailableLocations(locations);
-  } catch (err) {
-    console.error('Failed to fetch locations', err);
-    setAvailableLocations([]);
-  }
-};
+    const fetchLocations = async () => {
+      try {
+        const res = await axios.get('http://10.0.2.2:5000/api/locations');
+        const locations = Array.isArray(res.data) 
+          ? res.data.map(loc => loc.name) 
+          : (res.data.locations || []).map(loc => loc.name);
+        setAvailableLocations(locations);
+      } catch (err) {
+        console.error('Failed to fetch locations', err);
+        setAvailableLocations([]);
+      }
+    };
     fetchLocations();
   }, []);
 
@@ -66,62 +62,68 @@ const fetchLocations = async () => {
       setShowSuggestions(false);
     }
   };
-  
+
   const selectLocation = (loc) => {
     if (activeField === 'source') setSource(loc);
     else if (activeField === 'destination') setDestination(loc);
-  
     setShowSuggestions(false);
     setActiveField(null);
   };
-  
+
+  const handleSeatSelection = (seats) => {
+    setMaxCapacity(seats);
+    setOtherSeatsInput('');
+  };
+
+  const handleOtherSeatsInput = (text) => {
+    const num = parseInt(text) || 0;
+    if (num > 0) {
+      setMaxCapacity(num);
+      setOtherSeatsInput(text);
+    } else {
+      setMaxCapacity(1);
+      setOtherSeatsInput('');
+    }
+  };
+
   const validateForm = () => {
     if (!source.trim()) {
-      alert('Please enter the source location.');
+      Alert.alert('Error', 'Please enter departure point');
       return false;
     }
     if (!destination.trim()) {
-      alert('Please enter the destination.');
+      Alert.alert('Error', 'Please enter destination');
       return false;
     }
-    if (!maxCapacity.trim()) {
-      alert('Please enter the maximum capacity.');
+    if (!maxCapacity || maxCapacity < 1) {
+      Alert.alert('Error', 'Please select available seats');
       return false;
     }
     if (!totalFare.trim()) {
-      alert('Please enter the total fare.');
+      Alert.alert('Error', 'Please enter total fare');
       return false;
     }
     return true;
   };
 
   const handleSubmit = async () => {
-    if (!validateForm()) {
-      return; // Stop if validation fails
-    }
+    if (!validateForm()) return;
 
     try {
-      console.log("here")
-      // Prepare ride data
       const rideDetails = {
         source,
         destination,
-        date: date.toISOString(), // Convert date to ISO string
-        time: time.toLocaleTimeString(), // Convert time to string
-        maxCapacity: parseInt(maxCapacity, 10), // Convert to number
-        totalFare: parseFloat(totalFare), // Convert to number
+        date: date.toISOString(),
+        time: time.toLocaleTimeString(),
+        maxCapacity,
+        totalFare: parseFloat(totalFare),
         isFemaleOnly,
-        //userEmail: 'abcd', // Replace with the logged-in user's email
         userEmail: user.email,
       };
-      console.log("ride details::::",rideDetails);
 
-      // Send ride data to the backend API
       const response = await axios.post('http://10.0.2.2:5000/api/rides', rideDetails);
-
-      // Handle success
       Alert.alert('Success', 'Ride created successfully!');
-      //onBack(); // Navigate back to the previous screen   LATER
+      navigation.goBack();
     } catch (error) {
       console.error('Error creating ride:', error);
       Alert.alert('Error', 'Failed to create ride. Please try again.');
@@ -157,8 +159,6 @@ const fetchLocations = async () => {
     }));
   };
 
-  
-
   Animated.timing(fadeAnim, {
     toValue: 1,
     duration: 1000,
@@ -167,49 +167,150 @@ const fetchLocations = async () => {
 
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
-    {/* Header */}
-    <View style={styles.header}>
-    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-  <MaterialIcons name="arrow-back" size={24} color="#FFB22C" />
-</TouchableOpacity>
-      <Text style={styles.headerTitle}>Create a Ride</Text>
-    </View>
-
-    {/* Form Section */}
-    <View style={styles.formContainer}>
-      {/* Source Input */}
-      <View 
-        style={styles.inputContainer}
-        ref={sourceInputRef}
-        onLayout={handleInputLayout('source')}
-      >
-        <MaterialIcons name="location-on" size={20} color="#FFB22C" style={styles.icon} />
-        <TextInput
-          style={styles.input}
-          placeholder="From"
-          placeholderTextColor="#A0AEC0"
-          value={source}
-          onChangeText={(text) => handleLocationInput(text, 'source')}
-          onFocus={() => setActiveField('source')}
-        />
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <MaterialIcons name="arrow-back" size={24} color="#000" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Create New Ride</Text>
       </View>
 
-      {/* Destination Input */}
-      <View 
-        style={styles.inputContainer}
-        ref={destInputRef}
-        onLayout={handleInputLayout('destination')}
-      >
-        <MaterialIcons name="flag" size={20} color="#FFB22C" style={styles.icon} />
-        <TextInput
-          style={styles.input}
-          placeholder="To"
-          placeholderTextColor="#A0AEC0"
-          value={destination}
-          onChangeText={(text) => handleLocationInput(text, 'destination')}
-          onFocus={() => setActiveField('destination')}
-        />
+      {/* Main Form Container */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Route Details</Text>
+        
+        {/* Source Input */}
+        <View style={styles.inputContainer}>
+          <MaterialIcons name="radio-button-checked" size={20} color="#FFB22C" style={styles.inputIcon} />
+          <TextInput
+            style={styles.input}
+            placeholder="Departure point"
+            placeholderTextColor="#888"
+            value={source}
+            onChangeText={(text) => handleLocationInput(text, 'source')}
+            onFocus={() => setActiveField('source')}
+          />
+        </View>
+
+        {/* Destination Input */}
+        <View style={styles.inputContainer}>
+          <MaterialIcons name="location-on" size={20} color="#FFB22C" style={styles.inputIcon} />
+          <TextInput
+            style={styles.input}
+            placeholder="Destination"
+            placeholderTextColor="#888"
+            value={destination}
+            onChangeText={(text) => handleLocationInput(text, 'destination')}
+            onFocus={() => setActiveField('destination')}
+          />
+        </View>
+
+        {/* Schedule Section */}
+        <View style={styles.scheduleContainer}>
+          <Text style={styles.scheduleTitle}>Schedule</Text>
+          <View style={styles.datetimeRow}>
+            <TouchableOpacity 
+              style={styles.datetimeButton} 
+              onPress={() => setShowDatePicker(true)}
+            >
+              <Text style={styles.datetimeText}>{date.toLocaleDateString()}</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.datetimeButton} 
+              onPress={() => setShowTimePicker(true)}
+            >
+              <Text style={styles.datetimeText}>
+                {time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Ride Preferences */}
+        <View style={styles.preferencesContainer}>
+          <Text style={styles.preferencesTitle}>Ride Preferences</Text>
+          
+          {/* Available Seats */}
+          <Text style={styles.subtitle}>Available Seats</Text>
+          <View style={styles.seatSelectionContainer}>
+            {[1, 2, 3].map((num) => (
+              <TouchableOpacity
+                key={num}
+                style={[
+                  styles.seatButton,
+                  maxCapacity === num && styles.selectedSeatButton
+                ]}
+                onPress={() => handleSeatSelection(num)}
+              >
+                <Text style={[
+                  styles.seatButtonText,
+                  maxCapacity === num && styles.selectedSeatButtonText
+                ]}>
+                  {num}
+                </Text>
+              </TouchableOpacity>
+            ))}
+            <TextInput
+              style={styles.otherSeatsInput}
+              placeholder="Other"
+              placeholderTextColor="#888"
+              value={otherSeatsInput}
+              onChangeText={handleOtherSeatsInput}
+              keyboardType="numeric"
+            />
+          </View>
+
+            {/* Total Fare - Using MaterialIcons for rupee symbol */}
+          <View style={styles.fareContainer}>
+            <MaterialIcons name="currency-rupee" size={20} color="#FFB22C" style={styles.fareIcon} />
+            <TextInput
+              style={styles.fareInput}
+              placeholder="Total Fare"
+              placeholderTextColor="#888"
+              value={totalFare}
+              onChangeText={setTotalFare}
+              keyboardType="numeric"
+            />
+          </View>
+
+          {/* Female Only Checkbox */}
+          <TouchableOpacity
+            style={styles.checkboxContainer}
+            onPress={() => setIsFemaleOnly(!isFemaleOnly)}
+          >
+            <View style={[styles.checkbox, isFemaleOnly && styles.checked]}>
+              {isFemaleOnly && <MaterialIcons name="check" size={16} color="#FFB22C" />}
+            </View>
+            <Text style={styles.checkboxLabel}>Female passengers only</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Create Ride Button */}
+        <TouchableOpacity style={styles.createButton} onPress={handleSubmit}>
+          <Text style={styles.createButtonText}>Create Ride →</Text>
+        </TouchableOpacity>
       </View>
+
+      {/* Date/Time Pickers */}
+      {showDatePicker && (
+        <DateTimePicker 
+          value={date} 
+          mode="date" 
+          display="default" 
+          onChange={onDateChange} 
+          minimumDate={new Date()} 
+        />
+      )}
+
+      {showTimePicker && (
+        <DateTimePicker 
+          value={time} 
+          mode="time" 
+          display="default" 
+          onChange={onTimeChange} 
+        />
+      )}
 
       {/* Location Suggestions Dropdown */}
       {showSuggestions && filteredSuggestions.length > 0 && (
@@ -224,7 +325,6 @@ const fetchLocations = async () => {
           }
         ]}>
           <FlatList
-            keyboardShouldPersistTaps="always"
             data={filteredSuggestions}
             keyExtractor={(item, index) => index.toString()}
             renderItem={({ item }) => (
@@ -238,193 +338,211 @@ const fetchLocations = async () => {
           />
         </View>
       )}
-
-      {/* Date Picker */}
-      <TouchableOpacity 
-        style={styles.inputContainer} 
-        onPress={() => setShowDatePicker(true)}
-      >
-        <MaterialIcons name="calendar-today" size={20} color="#FFB22C" style={styles.icon} />
-        <Text style={styles.input}>{date.toLocaleDateString()}</Text>
-      </TouchableOpacity>
-      {showDatePicker && (
-        <DateTimePicker 
-          value={date} 
-          mode="date" 
-          display="default" 
-          onChange={onDateChange} 
-          minimumDate={new Date()} 
-        />
-      )}
-
-      {/* Time Picker */}
-      <TouchableOpacity 
-        style={styles.inputContainer} 
-        onPress={() => setShowTimePicker(true)}
-      >
-        <MaterialIcons name="access-time" size={20} color="#FFB22C" style={styles.icon} />
-        <Text style={styles.input}>{time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</Text>
-      </TouchableOpacity>
-      {showTimePicker && (
-        <DateTimePicker 
-          value={time} 
-          mode="time" 
-          display="default" 
-          onChange={onTimeChange} 
-        />
-      )}
-
-      {/* Max Capacity */}
-      <View style={styles.inputContainer}>
-        <MaterialIcons name="people" size={20} color="#FFB22C" style={styles.icon} />
-        <TextInput
-          style={styles.input}
-          placeholder="Max Cab Capacity"
-          placeholderTextColor="#A0AEC0"
-          value={maxCapacity}
-          onChangeText={setMaxCapacity}
-          keyboardType="numeric"
-        />
-      </View>
-
-      {/* Total Fare */}
-      <View style={styles.inputContainer}>
-        <MaterialIcons name="attach-money" size={20} color="#FFB22C" style={styles.icon} />
-        <TextInput
-          style={styles.input}
-          placeholder="Total Cab Fare"
-          placeholderTextColor="#A0AEC0"
-          value={totalFare}
-          onChangeText={setTotalFare}
-          keyboardType="numeric"
-        />
-      </View>
-
-      {/* Female Only Checkbox */}
-      <TouchableOpacity
-        style={styles.checkboxContainer}
-        onPress={() => setIsFemaleOnly(!isFemaleOnly)}
-      >
-        <View style={[styles.checkbox, isFemaleOnly && styles.checked]}>
-          {isFemaleOnly && <MaterialIcons name="check" size={16} color="#FFB22C" />}
-        </View>
-        <Text style={styles.checkboxLabel}>Female Only</Text>
-      </TouchableOpacity>
-
-      {/* Create Ride Button */}
-      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-        <Text style={styles.buttonText}>Create Ride</Text>
-      </TouchableOpacity>
-    </View>
-  </Animated.View>
-);
+    </Animated.View>
+  );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F5F5F5',
+    padding: 16,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'ios' ? 60 : 36,
-    paddingBottom: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
+    marginBottom: 16,
   },
   backButton: {
-    marginRight: 12,
+    marginRight: 16,
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: '600',
-    color: '#000000',
+    fontWeight: 'bold',
+    color: '#000',
   },
-  formContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
+  card: {
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEE',
+    paddingBottom: 8,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F6F6F6',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEE',
+    paddingVertical: 12,
     marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#E2E2E2',
   },
-  icon: {
+  inputIcon: {
     marginRight: 12,
-    color: '#5F5F5F',
   },
   input: {
     flex: 1,
     fontSize: 16,
-    color: '#111111',
+    color: '#000',
   },
-  suggestionsContainer: {
-    position: 'absolute',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    maxHeight: 200,
-    zIndex: 1000,
-    elevation: 4,
-    marginTop: 2,
-  },
-  suggestionItem: {
-    padding: 14,
-    borderBottomColor: '#F1F1F1',
+  scheduleContainer: {
+    marginBottom: 16,
     borderBottomWidth: 1,
+    borderBottomColor: '#EEE',
+    paddingBottom: 16,
   },
-  suggestionText: {
-    color: '#1A1A1A',
+  scheduleTitle: {
     fontSize: 16,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 12,
+  },
+  datetimeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  datetimeButton: {
+    width: '48%',
+    padding: 12,
+    backgroundColor: '#F9F9F9',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#EEE',
+  },
+  datetimeText: {
+    fontSize: 16,
+    color: '#000',
+    textAlign: 'center',
+  },
+  preferencesContainer: {
+    marginBottom: 16,
+  },
+  preferencesTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 16,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 12,
+  },
+  seatSelectionContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  seatButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F5F5F5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  selectedSeatButton: {
+    backgroundColor: '#FFB22C',
+  },
+  seatButtonText: {
+    fontSize: 16,
+    color: '#666',
+  },
+  selectedSeatButtonText: {
+    color: '#FFF',
+  },
+  otherSeatsInput: {
+    width: 80,
+    height: 40,
+    borderWidth: 1,
+    borderColor: '#EEE',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    fontSize: 16,
+    color: '#000',
+  },
+  fareContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEE',
+    paddingVertical: 12,
+    marginBottom: 16,
+  },
+  fareIcon: {
+    marginRight: 12,
+  },
+  fareInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#000',
   },
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 16,
+    marginBottom: 24,
   },
   checkbox: {
-    width: 22,
-    height: 22,
+    width: 20,
+    height: 20,
     borderRadius: 4,
-    borderWidth: 1.5,
-    borderColor: '#000000',
+    borderWidth: 2,
+    borderColor: '#666',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
   checked: {
-    backgroundColor: '#000000',
+    backgroundColor: '#FFB22C',
+    borderColor: '#FFB22C',
   },
   checkboxLabel: {
     fontSize: 16,
-    color: '#000000',
+    color: '#000',
   },
-  button: {
-    backgroundColor: '#000000',
-    borderRadius: 10,
-    paddingVertical: 16,
+  createButton: {
+    backgroundColor: '#FFB22C',
+    borderRadius: 8,
+    padding: 16,
     alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 20,
   },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 17,
-    fontWeight: '600',
+  createButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
   },
-  
+  suggestionsContainer: {
+    position: 'absolute',
+    backgroundColor: '#FFF',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#EEE',
+    maxHeight: 200,
+    zIndex: 1000,
+    elevation: 4,
+  },
+  suggestionItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  suggestionText: {
+    fontSize: 16,
+    color: '#000',
+  },
 });
-
-
 
 export default CreateRide;

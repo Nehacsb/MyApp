@@ -15,21 +15,36 @@ const ChatFeature = ({ route, navigation }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        console.log("Ride ID:", rideId);    
         navigation.setOptions({
             title: `${rideDetails.start} → ${rideDetails.destination}`,
-            headerRight: () => (
-                <TouchableOpacity onPress={() => navigation.navigate('RidePeopleScreen', { rideId })}>
-                    <Icon name="account-group" size={24} color="#fff" style={{ marginRight: 15 }} />
+            headerLeft: () => (
+                <TouchableOpacity 
+                    onPress={() => navigation.goBack()}
+                    style={{ marginLeft: 10 }}
+                >
+                    <Icon name="arrow-left" size={24} color="#000" />
                 </TouchableOpacity>
             ),
+            headerStyle: {
+                backgroundColor: '#FFB22C', // Match your app's theme
+                elevation: 0, // Remove shadow on Android
+                shadowOpacity: 0, // Remove shadow on iOS
+            },
+            headerTintColor: '#999', // Color for title and back button
+            headerTitleStyle: {
+                fontWeight: 'bold',
+                color: '#999',
+            },
         });
+
 
         const fetchMessages = async () => {
             try {
                 const response = await axios.get(`http://10.0.2.2:5000/api/chat/${rideId}`);
                 setMessages(response.data);
             } catch (error) {
-                console.error('Error fetching messages_feature:', error);
+                console.error('Error fetching messages:', error);
                 Alert.alert('Error', 'Failed to load chat messages');
             } finally {
                 setLoading(false);
@@ -76,20 +91,24 @@ const ChatFeature = ({ route, navigation }) => {
 
     const renderMessage = ({ item }) => {
         const isCurrentUser = item.senderId === user._id;
-        const backgroundColor = isCurrentUser
-            ? '#FFB22C'
-            : getColorForUser(item.senderName);
+        const backgroundColor = isCurrentUser ? '#FFB22C' : getColorForUser(item.senderName);
+        const textColor = isCurrentUser ? '#fff' : '#333';
 
         return (
             <View style={[
                 styles.messageContainer,
-                { alignSelf: isCurrentUser ? 'flex-end' : 'flex-start', backgroundColor }
+                { 
+                    alignSelf: isCurrentUser ? 'flex-end' : 'flex-start',
+                    backgroundColor,
+                    borderBottomRightRadius: isCurrentUser ? 0 : 10,
+                    borderBottomLeftRadius: isCurrentUser ? 10 : 0
+                }
             ]}>
                 {!isCurrentUser && (
-                    <Text style={styles.senderName}>{item.senderName}</Text>
+                    <Text style={[styles.senderName, { color: textColor }]}>{item.senderName}</Text>
                 )}
-                <Text style={styles.messageText}>{item.content}</Text>
-                <Text style={styles.messageTime}>
+                <Text style={[styles.messageText, { color: textColor }]}>{item.content}</Text>
+                <Text style={[styles.messageTime, { color: textColor }]}>
                     {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </Text>
             </View>
@@ -98,39 +117,52 @@ const ChatFeature = ({ route, navigation }) => {
 
     return (
         <View style={styles.container}>
+             <View style={styles.header}>
+                <TouchableOpacity 
+                    onPress={() => navigation.goBack()}
+                    style={styles.backButton}
+                >
+                    <Icon name="arrow-left" size={24} color="#000" />
+                </TouchableOpacity>
+                <Text style={styles.headerTitle}>
+                    {rideDetails.start} → {rideDetails.destination}
+                </Text>
+                <View style={{ width: 24 }} /> {/* Spacer for alignment */}
+            </View>
+
             {loading ? (
                 <View style={styles.loadingContainer}>
                     <Text>Loading messages...</Text>
                 </View>
             ) : (
                 <>
-                    {/* Ride Info Header */}
-                    {/* <TouchableOpacity
-                        style={styles.rideInfoHeader}
-                        onPress={() => navigation.navigate('RidePeopleScreen', { rideId, rideDetails })}
-                    >
-                        <View style={styles.rideInfoTextContainer}>
-                            <Text style={styles.rideInfoLabel}>Ride:</Text>
-                            <Text style={styles.rideInfoRoute}>{rideDetails.start} → {rideDetails.destination}</Text>
-                        </View>
-                        <Icon name="chevron-right" size={24} color="#555" />
-                    </TouchableOpacity> */}
                     <FlatList
                         data={messages}
                         renderItem={renderMessage}
                         keyExtractor={(item) => item._id}
                         contentContainerStyle={styles.messagesList}
+                        
                     />
+
                     <View style={styles.inputContainer}>
                         <TextInput
                             style={styles.input}
                             value={newMessage}
                             onChangeText={setNewMessage}
                             placeholder="Type a message..."
+                            placeholderTextColor="#999"
                             multiline
                         />
-                        <TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
-                            <Icon name="send" size={24} color="#FFB22C" />
+                        <TouchableOpacity 
+                            style={styles.sendButton} 
+                            onPress={handleSendMessage}
+                            disabled={!newMessage.trim()}
+                        >
+                            <Icon 
+                                name="send" 
+                                size={24} 
+                                color={newMessage.trim() ? "#FFB22C" : "#ccc"} 
+                            />
                         </TouchableOpacity>
                     </View>
                 </>
@@ -142,7 +174,7 @@ const ChatFeature = ({ route, navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFF8F0', // Soft theme background
+        backgroundColor: '#FFF8F0',
     },
     loadingContainer: {
         flex: 1,
@@ -150,27 +182,33 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     messagesList: {
-        padding: 10,
+        padding: 15,
+        paddingBottom: 5,
     },
     messageContainer: {
         maxWidth: '80%',
-        padding: 10,
+        padding: 12,
         borderRadius: 10,
         marginBottom: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.2,
+        shadowRadius: 2,
+        elevation: 2,
     },
     senderName: {
         fontWeight: 'bold',
         marginBottom: 4,
-        color: '#333',
+        fontSize: 12,
     },
     messageText: {
-        color: '#333',
+        fontSize: 16,
     },
     messageTime: {
         fontSize: 10,
-        color: '#666',
         alignSelf: 'flex-end',
         marginTop: 4,
+        opacity: 0.8,
     },
     inputContainer: {
         flexDirection: 'row',
@@ -178,45 +216,48 @@ const styles = StyleSheet.create({
         borderTopWidth: 1,
         borderTopColor: '#EEE',
         backgroundColor: '#FFF',
+        alignItems: 'center',
     },
     input: {
         flex: 1,
         borderWidth: 1,
         borderColor: '#DDD',
-        borderRadius: 20,
+        borderRadius: 25,
         paddingHorizontal: 15,
         paddingVertical: 10,
         marginRight: 10,
         maxHeight: 100,
+        fontSize: 16,
+        backgroundColor: '#FFF',
     },
     sendButton: {
         justifyContent: 'center',
         alignItems: 'center',
+        width: 40,
+        height: 40,
+        borderRadius: 20,
     },
-    rideInfoHeader: {
+    backButton: {
+        padding: 5,
+    },
+    header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
+        paddingVertical: 15,
         paddingHorizontal: 15,
-        paddingVertical: 10,
-        backgroundColor: '#FFFBEF',
+        backgroundColor: '#FFF',
         borderBottomWidth: 1,
         borderBottomColor: '#EEE',
     },
-    rideInfoTextContainer: {
-        flexDirection: 'column',
-    },
-    rideInfoLabel: {
-        fontSize: 12,
-        color: '#888',
-        marginBottom: 2,
-    },
-    rideInfoRoute: {
-        fontSize: 16,
+    headerTitle: {
+        fontSize: 18,
         fontWeight: 'bold',
-        color: '#333',
+        color: '#000',
+        flex: 1,
+        textAlign: 'center',
+        marginHorizontal: 10,
     },
-    
 });
 
 export default ChatFeature;

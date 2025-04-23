@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Dimensions } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
-import ChatFeature from './ChatFeature'; // Import the Chat component
+
+const { height } = Dimensions.get('window');
+const SECTION_HEIGHT = height * 0.4;
 
 const MyRides = () => {
   const navigation = useNavigation();
@@ -24,12 +26,10 @@ const MyRides = () => {
         }
 
         // Fetch rides created by user
-        console.log("Fetching rides for user:", user.email); // Debugging
         const createdResponse = await axios.get('http://10.0.2.2:5000/api/rides', {
           params: { email: user.email },
           headers: { 'Content-Type': 'application/json' }
         });
-        console.log('Fetched Created Rides:', createdResponse.data); // Debugging
 
         // Fetch rides requested by user
         const requestedResponse = await axios.get('http://10.0.2.2:5000/api/request/requests', {
@@ -80,10 +80,9 @@ const MyRides = () => {
     };
 
     fetchRides();
-  }, [user.email]);
+  }, [user?.email]);
 
   const navigateToChat = (ride) => {
-    // Only allow chat access for rides that are created by the user or have confirmed status
     if (ride.type === 'created' || ride.status === 'accepted') {
       navigation.navigate('ChatFeature', {
         rideId: ride.type === 'created' ? ride.id : ride.rideId,
@@ -102,9 +101,7 @@ const MyRides = () => {
   const renderRideCard = ({ item }) => (
     <View style={styles.card}>
       <View style={styles.topRow}>
-        <Text style={styles.routeText}>
-          {item.start} → {item.destination}
-        </Text>
+        <Text style={styles.routeText}>{item.start} → {item.destination}</Text>
         <View style={styles.seatContainer}>
           <Icon name="seat-passenger" size={18} color="#FFB22C" />
           <Text style={styles.seatText}>{item.seatsLeft} seats left</Text>
@@ -125,7 +122,6 @@ const MyRides = () => {
         </Text>
       </View>
 
-      {/* Add chat button */}
       {(item.type === 'created' || item.status === 'accepted') && (
         <TouchableOpacity
           style={styles.chatButton}
@@ -158,69 +154,100 @@ const MyRides = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Icon name="arrow-left" size={24} color="#FFB22C" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>My Rides</Text>
+        </View>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading your rides...</Text>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Icon name="arrow-left" size={24} color="#FFB22C" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>My Rides</Text>
       </View>
 
-      {/* Main Content */}
-      <View style={styles.content}>
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>Loading your rides...</Text>
-          </View>
+      {/* Created Rides Section (Top Half) */}
+      <View style={[styles.sectionContainer, { height: SECTION_HEIGHT }]}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionHeaderText}>Rides You Created</Text>
+        </View>
+        {ridesData.createdRides.length > 0 ? (
+          <FlatList
+            data={ridesData.createdRides}
+            renderItem={renderRideCard}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={true}
+          />
         ) : (
-          <View style={styles.scrollContainer}>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Rides You Created</Text>
-              <FlatList
-                data={ridesData.createdRides}
-                renderItem={renderRideCard}
-                keyExtractor={(item) => item.id}
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.flatListContainer}
-              />
-            </View>
+          <View style={styles.emptyContainer}>
+            <Icon name="car-off" size={40} color="#A0AEC0" />
+            <Text style={styles.noDataText}>No rides created</Text>
+          </View>
+        )}
+      </View>
 
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Rides You Requested</Text>
-              <FlatList
-                data={ridesData.requestedRides}
-                renderItem={renderRideCard}
-                keyExtractor={(item) => item.id}
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.flatListContainer}
-              />
-            </View>
+      {/* Divider */}
+      <View style={styles.divider} />
+
+      {/* Requested Rides Section (Bottom Half) */}
+      <View style={[styles.sectionContainer, { height: SECTION_HEIGHT }]}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionHeaderText}>Rides You Requested</Text>
+        </View>
+        {ridesData.requestedRides.length > 0 ? (
+          <FlatList
+            data={ridesData.requestedRides}
+            renderItem={renderRideCard}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={true}
+          />
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Icon name="car-off" size={40} color="#A0AEC0" />
+            <Text style={styles.noDataText}>No ride requests</Text>
           </View>
         )}
       </View>
     </View>
   );
+
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F9F9F9',
-    paddingHorizontal: 16,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 16,
+    paddingHorizontal: 16,
     backgroundColor: '#FFFFFF',
     shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
-    marginBottom: 8,
+  },
+  sectionContainer: {
+    paddingHorizontal: 16,
   },
   backButton: {
     marginRight: 10,
@@ -230,25 +257,36 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1A202C',
   },
-  content: {
+  splitContainer: {
     flex: 1,
+    flexDirection: 'row',
   },
-  scrollContainer: {
+  halfSection: {
     flex: 1,
-    flexDirection: 'column',
+    height: height * 0.8, // Adjust based on your header height
+    paddingHorizontal: 8,
   },
-  sectionContainer: {
-    flex: 1,
-    marginBottom: 10,
+  sectionHeader: {
+    backgroundColor: '#FFB22C',
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginVertical: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
   },
-  sectionTitle: {
+  sectionHeaderText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1A202C',
-    marginBottom: 8,
+    color: '#FFFFFF',
+    textAlign: 'center',
   },
-  flatListContainer: {
-    paddingBottom: 10,
+  divider: {
+    height: 1,
+    backgroundColor: '#E2E8F0',
+    marginVertical: 8,
   },
   card: {
     backgroundColor: '#FFFFFF',
@@ -312,27 +350,40 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 16,
   },
   loadingText: {
     fontSize: 16,
     color: '#718096',
     marginTop: 10,
   },
+  emptyContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    margin: 8,
+  },
+  noDataText: {
+    fontSize: 16,
+    color: '#A0AEC0',
+    marginTop: 10,
+  },
+  listContent: {
+    paddingBottom: 20,
+  },
   chatButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFF8E1',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
     marginTop: 10,
-    alignSelf: 'flex-end',
+    alignSelf: 'flex-start',
   },
   chatButtonText: {
+    fontSize: 14,
     color: '#FFB22C',
-    fontWeight: '600',
     marginLeft: 4,
+    fontWeight: '600',
   },
 });
 

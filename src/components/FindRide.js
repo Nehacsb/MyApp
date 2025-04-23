@@ -1,52 +1,47 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, Alert, Image } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const FindRide = ({navigation}) => {
-  const { userToken } = useContext(AuthContext);
+const FindRide = ({ navigation }) => {
+  const { userToken, user } = useContext(AuthContext);
   const [rides, setRides] = useState([]);
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [minSeats, setMinSeats] = useState('');
+  const [selectedSeats, setSelectedSeats] = useState(1);
 
-  const { user } = useContext(AuthContext);//...... 
-
-  // Fetch rides when component loads
   useEffect(() => {
     fetchRides();
   }, []);
 
   const fetchRides = async () => {
     try {
-
-      
       if (!from && !to) {
         console.error("Please provide a source or destination");
         return;
       }
-      const url = `http://10.0.2.2:5000/api/rides/search?source=${from}&destination=${to}`;
-
-      console.log("Fetching rides from:", url); // Log the URL
+      console.log("Fetching rides with params:", { from, to, minSeats });
+      let url = `http://10.0.2.2:5000/api/rides/search?source=${from}&destination=${to}`;
+      if (minSeats && !isNaN(minSeats)) {
+        url += `&minSeats=${minSeats}`;
+      }
 
       const response = await axios.get(url, {
-        headers: { Authorization: `Bearer ${userToken} `},
+        headers: { Authorization: `Bearer ${userToken}` },
       });
-      console.log('Fetched Rides:', response.data); // Debugging
 
       if (Array.isArray(response.data)) {
         setRides(response.data);
       } else {
         console.error('Unexpected data format:', response.data);
-      };
+      }
     } catch (error) {
       console.error('Error fetching rides:', error);
     }
   };
 
-  // Modify handleSearch to call fetchRides instead of filtering in frontend
   const handleSearch = () => {
     if (!from && !to) {
       Alert.alert('Error', 'Please enter at least one location.');
@@ -55,94 +50,85 @@ const FindRide = ({navigation}) => {
     fetchRides();
   };
 
-
   const bookRide = async (rideId) => {
     try {
-      // Make sure user object exists and has email
-      if (!user || !user.email) {
-        Alert.alert('Error', 'User information not available. Please login again.');
-        return;
-      }
-  
-      console.log('Attempting to book ride:', rideId, 'for user:', user.email);
-      
       const response = await axios.post(
         'http://10.0.2.2:5000/api/request/book',
         { 
           rideId, 
-          userEmail: user.email 
+          userEmail: user.email,
+          seats: selectedSeats
         },
-        {
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
+        { headers: { 'Content-Type': 'application/json' } }
       );
-  
-      console.log('Booking response:', response.data);
       
-      Alert.alert(
-        'Request Sent!',
-        response.data.message || 'Your ride request has been sent to the driver.'
-      );
+      Alert.alert('Request Sent!', response.data.message);
     } catch (error) {
-      console.error('Full error object:', error);
-      console.error('Error response data:', error.response?.data);
-      
-      let errorMessage = 'Failed to send request';
-      if (error.response) {
-        errorMessage = error.response.data?.message || 
-                      error.response.data?.msg || 
-                      `Server error (${error.response.status})`;
-      }
-      
-      Alert.alert('Error', errorMessage);
+      Alert.alert('Error', error.response?.data?.message || 'Failed to book ride');
     }
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
+  const formatTime = (timeString) => {
+    const time = new Date(timeString);
+    return time.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#FFB22C" />
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <MaterialIcons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Find a Ride</Text>
+        <View style={{ width: 24 }} /> {/* For alignment */}
       </View>
 
-      {/* Search Fields */}
-      <View style={styles.searchContainer}>
-        <View style={styles.inputContainer}>
-          <MaterialIcons name="place" size={24} color="#FFB22C" style={styles.icon} />
+      {/* Search Section */}
+      <View style={styles.searchSection}>
+        <View style={styles.searchInputContainer}>
+          <MaterialIcons name="place" size={20} color="#FFB22C" />
           <TextInput
-            style={styles.input}
+            style={styles.searchInput}
             placeholder="From"
-            placeholderTextColor="#A0AEC0"
+            placeholderTextColor="#888"
             value={from}
             onChangeText={setFrom}
           />
         </View>
 
-        <View style={styles.inputContainer}>
-          <MaterialIcons name="place" size={24} color="#FFB22C" style={styles.icon} />
+        <View style={styles.searchInputContainer}>
+          <MaterialIcons name="place" size={20} color="#FFB22C" />
           <TextInput
-            style={styles.input}
+            style={styles.searchInput}
             placeholder="To"
-            placeholderTextColor="#A0AEC0"
+            placeholderTextColor="#888"
             value={to}
             onChangeText={setTo}
           />
         </View>
 
-        <View style={styles.inputContainer}>
-          <MaterialIcons name="event-seat" size={24} color="#FFB22C" style={styles.icon} />
+        <View style={styles.searchInputContainer}>
+          <MaterialIcons name="event-seat" size={20} color="#FFB22C" />
           <TextInput
-            style={styles.input}
-            placeholder="Minimum Seats (optional)"
-            placeholderTextColor="#A0AEC0"
+            style={styles.searchInput}
+            placeholder="Min Seats"
+            placeholderTextColor="#888"
             keyboardType="numeric"
             value={minSeats}
-            onChangeText={setMinSeats}
+            onChangeText={(text) => /^\d*$/.test(text) && setMinSeats(text)}
           />
         </View>
 
@@ -154,19 +140,69 @@ const FindRide = ({navigation}) => {
       {/* Rides List */}
       <FlatList
         data={rides}
-        keyExtractor={(item, index) => item?._id || index.toString()}
+        keyExtractor={(item) => item._id}
+        contentContainerStyle={styles.ridesList}
         renderItem={({ item }) => (
-          <View style={styles.rideItem}>
+          <View style={styles.rideCard}>
+            {/* Route and Date */}
             <View style={styles.rideHeader}>
               <Text style={styles.rideRoute}>{item.source} → {item.destination}</Text>
-              <Text style={styles.rideDate}>{item.date}</Text>
+              <Text style={styles.rideDate}>{formatDate(item.date)}</Text>
             </View>
-            <View>
-              <Text style={styles.rideDetail}>Time: {item.time}</Text>
-              <Text style={styles.rideDetail}>Seats Left: {item.seatsLeft}</Text>
-              <Text style={styles.rideDetail}>Price: ${item.totalFare}</Text>
+
+            {/* Driver Info */}
+            <View style={styles.driverInfo}>
+              <View style={styles.driverAvatar}>
+                <MaterialIcons name="person" size={24} color="#FFF" />
+              </View>
+              <View style={styles.driverDetails}>
+                <Text style={styles.driverName}>
+                  {item.createdBy?.firstName} {item.createdBy?.lastName}
+                </Text>
+                <Text style={styles.driverEmail}>{item.createdBy?.email}</Text>
+              </View>
             </View>
-            <TouchableOpacity
+
+            {/* Ride Details */}
+            <View style={styles.rideDetails}>
+              <View style={styles.detailItem}>
+                <MaterialIcons name="access-time" size={16} color="#FFB22C" />
+                <Text style={styles.detailText}>{item.time}</Text>
+              </View>
+              
+              <View style={styles.detailItem}>
+                <MaterialIcons name="event-seat" size={16} color="#FFB22C" />
+                <Text style={styles.detailText}>{item.seatsLeft} seats left</Text>
+              </View>
+              
+              <View style={styles.detailItem}>
+                <MaterialIcons name="currency-rupee" size={16} color="#FFB22C" />
+                <Text style={styles.detailText}>{item.totalFare}</Text>
+              </View>
+            </View>
+
+            {/* Seat Selection */}
+            <View style={styles.seatSelection}>
+              <Text style={styles.seatLabel}>Select Seats:</Text>
+              <View style={styles.seatControls}>
+                <TouchableOpacity 
+                  style={styles.seatButton} 
+                  onPress={() => setSelectedSeats(Math.max(1, selectedSeats - 1))}
+                >
+                  <Text style={styles.seatButtonText}>-</Text>
+                </TouchableOpacity>
+                <Text style={styles.seatCount}>{selectedSeats}</Text>
+                <TouchableOpacity 
+                  style={styles.seatButton} 
+                  onPress={() => setSelectedSeats(Math.min(item.seatsLeft, selectedSeats + 1))}
+                >
+                  <Text style={styles.seatButtonText}>+</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Book Button */}
+            <TouchableOpacity 
               style={styles.bookButton}
               onPress={() => bookRide(item._id)}
             >
@@ -182,103 +218,166 @@ const FindRide = ({navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9F9F9',
+    backgroundColor: '#FFF',
   },
   header: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    paddingTop: 24,
-    backgroundColor: '#FFFFFF',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEE',
   },
   headerTitle: {
-    fontSize: 22,
-    fontWeight: '600',
-    color: '#1A202C',
-    marginLeft: 10,
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#000',
   },
-  searchContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 16,
+  searchSection: {
+    padding: 16,
+    backgroundColor: '#FFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEE',
   },
-  inputContainer: {
+  searchInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F0F0F0',
-    borderRadius: 12,
-    padding: 12,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     marginBottom: 12,
   },
-  icon: {
-    marginRight: 10,
-    color: '#FFB22C',
-  },
-  input: {
+  searchInput: {
     flex: 1,
     fontSize: 16,
-    color: '#1A202C',
+    color: '#000',
+    marginLeft: 8,
   },
   searchButton: {
     backgroundColor: '#FFB22C',
-    borderRadius: 12,
-    paddingVertical: 14,
+    borderRadius: 8,
+    padding: 14,
     alignItems: 'center',
   },
   searchButtonText: {
-    color: '#1A202C',
+    color: '#000',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: 'bold',
   },
-  rideItem: {
-    backgroundColor: '#FFFFFF',
+  ridesList: {
+    padding: 16,
+  },
+  rideCard: {
+    backgroundColor: '#FFF',
     borderRadius: 12,
     padding: 16,
-    marginHorizontal: 16,
     marginBottom: 16,
     shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
     shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
     elevation: 2,
   },
   rideHeader: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
-    paddingBottom: 8,
-    marginBottom: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
   },
   rideRoute: {
-    color: '#1A202C',
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#000',
   },
   rideDate: {
-    color: '#718096',
     fontSize: 14,
+    color: '#888',
   },
-  rideDetail: {
-    color: '#2D3748',
+  driverInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  driverAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FFB22C',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  driverDetails: {
+    flex: 1,
+  },
+  driverName: {
     fontSize: 16,
-    marginBottom: 6,
+    fontWeight: '600',
+    color: '#000',
+  },
+  driverEmail: {
+    fontSize: 14,
+    color: '#888',
+  },
+  rideDetails: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  detailItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  detailText: {
+    fontSize: 14,
+    color: '#000',
+    marginLeft: 4,
+  },
+  seatSelection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  seatLabel: {
+    fontSize: 16,
+    color: '#000',
+  },
+  seatControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  seatButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FFB22C',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  seatButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  seatCount: {
+    marginHorizontal: 12,
+    fontSize: 16,
+    color: '#000',
+    minWidth: 20,
+    textAlign: 'center',
   },
   bookButton: {
     backgroundColor: '#FFB22C',
-    borderRadius: 10,
-    paddingVertical: 10,
-    marginTop: 10,
+    borderRadius: 8,
+    padding: 14,
     alignItems: 'center',
   },
   bookButtonText: {
-    color: '#1A202C',
-    fontWeight: '600',
+    color: '#000',
     fontSize: 16,
+    fontWeight: 'bold',
   },
 });
-
 
 export default FindRide;
