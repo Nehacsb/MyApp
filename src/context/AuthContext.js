@@ -67,27 +67,42 @@ export const AuthProvider = ({ children }) => {
 
   const signup = async (firstName, lastName, email, password, phoneNumber, gender) => {
     try {
-      const response = await fetch("http://10.0.2.2:5000/api/signup", {
+      // Fetch allowed domains first
+      console.log("email:",email);
+      const domainResponse = await fetch("http://192.168.91.19:5000/api/admin/authorized_domain");
+      const allowedDomains = await domainResponse.json();
+      console.log("authorised_emails:",allowedDomains);
+  
+      //const emailDomain = email.split("@")[1];
+
+      console.log("answer:",allowedDomains.includes(email));
+  
+      const isAllowed =
+        email.endsWith("@iitrpr.ac.in") || allowedDomains.includes(email);
+  
+      if (!isAllowed) {
+        throw new Error("Signup allowed only for emails from @iitrpr.ac.in or authorized domains.");
+      }
+  
+      // Proceed with signup
+      const response = await fetch("http://192.168.91.19:5000/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ firstName, lastName, email, password, phoneNumber, gender }),
       });
-
+  
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to sign up");
       }
-
-      
+  
       await response.json(); // Just consume the message
-
-      // Don't set user or token yet — do that after OTP is verified
+  
       setOtpSent(true);
       setIsAdmin(false);
       setAdminMode(false);
       setAdminConfirmed(null);
-
-
+  
       return "OTP sent successfully, please verify it";
     } catch (error) {
       console.error("Signup Error:", error);
@@ -97,7 +112,7 @@ export const AuthProvider = ({ children }) => {
 
   const verifyOTP = async (email, otp) => {
     try {
-      const response = await fetch("http://10.0.2.2:5000/api/verify-otp", {
+      const response = await fetch("https://myapp-hu0i.onrender.com/api/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, otp }),

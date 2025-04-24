@@ -16,7 +16,7 @@ import DomainManagement from "../components/DomainManagement";
 import LocationManagement from "../components/LocationManagement";
 import ChatFeature from "../components/ChatFeature";
 
-import Profile from "../components/Profile";
+import ProfileSidebar from "../components/ProfileSidebar";
 
 const Stack = createStackNavigator();
 
@@ -74,7 +74,7 @@ const AppNavigator = () => {
               <Stack.Screen name="MyRides" component={MyRides} />
               <Stack.Screen name="PendingRequests" component={PendingRequests} />
               <Stack.Screen name="ChatFeature" component={ChatFeature} />
-              <Stack.Screen name="Profile" component={Profile} />
+              <Stack.Screen name="ProfileSidebar" component={ProfileSidebar} />
 
             </>
           )

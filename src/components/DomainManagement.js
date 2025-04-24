@@ -30,7 +30,7 @@ const DomainManagement = () => {
     const fetchDomains = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch("http://10.0.2.2:5000/api/admin/authorized_domain");
+        const response = await fetch("https://myapp-hu0i.onrender.com/api/admin/authorized_domain");
         const data = await handleResponse(response);
         setAuthorizedDomains(Array.isArray(data) ? data : []);
       } catch (error) {
@@ -49,7 +49,7 @@ const DomainManagement = () => {
     if (!trimmedDomain) return;
 
     try {
-      const response = await fetch("http://10.0.2.2:5000/api/admin/authorize_domain", {
+      const response = await fetch("https://myapp-hu0i.onrender.com/api/admin/authorize_domain", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ domain: trimmedDomain }),
@@ -68,7 +68,7 @@ const DomainManagement = () => {
   // Remove domain
   const removeDomain = async (domainToRemove) => {
     try {
-      const response = await fetch("http://10.0.2.2:5000/api/admin/remove_domain", {
+      const response = await fetch("https://myapp-hu0i.onrender.com/api/admin/remove_domain", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ domain: domainToRemove }),
@@ -182,7 +182,7 @@ const DomainManagement = () => {
       // Upload each domain
       for (const domainName of newDomains) {
         try {
-          const response = await fetch('http://10.0.2.2:5000/api/admin/authorize_domain', {
+          const response = await fetch('https://myapp-hu0i.onrender.com/api/admin/authorize_domain', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ domain: domainName }),

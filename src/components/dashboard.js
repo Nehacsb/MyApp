@@ -4,6 +4,7 @@ import Geolocation from '@react-native-community/geolocation';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import MapboxGL from '@maplibre/maplibre-react-native';
 import { AuthContext } from '../context/AuthContext';
+import ProfileSidebar from './ProfileSidebar'; 
 
 // Initialize MapLibre (no token needed for OSM)
 MapboxGL.setAccessToken(null);
@@ -12,8 +13,11 @@ const Dashboard = ({ navigation }) => {
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  
   const { logout } = useContext(AuthContext);
+  const [showSidebar, setShowSidebar] = useState(false);
+  const [sidebarVisible, setSidebarVisible] = useState(false);
+
+
   
   const showErrorAlert = (message) => {
     Alert.alert(
@@ -94,7 +98,7 @@ const Dashboard = ({ navigation }) => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+        <TouchableOpacity onPress={() => setShowSidebar(!showSidebar)}>
           <Icon name="account-circle" size={30} color="#1C1C1E" />
         </TouchableOpacity>
 
@@ -107,6 +111,12 @@ const Dashboard = ({ navigation }) => {
         </View>
       </View>
 
+       {/* Sidebar */}
+       {showSidebar && (
+        <View style={styles.sidebarContainer}>
+          <ProfileSidebar onClose={() => setShowSidebar(false)}/>
+        </View>
+      )}
       {/* Highlighted Banner */}
       <View style={styles.banner}>
         <Text style={styles.bannerText}>Find a ride, Share a ride</Text>
@@ -270,21 +280,23 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: 1,
-    backgroundColor: '#000',
+    backgroundColor: '#999',
     marginVertical: 8,
   },
   actions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 12,
+    marginTop: 8,
     paddingHorizontal: 6,
   },
   actionButton: {
     alignItems: 'center',
     backgroundColor: '#F9F9F9',
-    paddingVertical: 14,
+    borderColor: 'black',
+    borderWidth: 1,
+    paddingVertical: 9,
     paddingHorizontal: 10,
-    borderRadius: 14,
+    borderRadius: 10,
     width: 80,
     elevation: 2,
     shadowColor: '#000',
@@ -314,6 +326,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFA500',
     transform: [{ scale: 1 }],
   },
+  sidebarContainer: {
+    position: 'absolute',
+    left: 0,
+    top: 60, // or wherever your header height ends
+    bottom: 0,
+    zIndex: 999,
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 0 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 10,
+  },
+  
 });
 
 export default Dashboard;
