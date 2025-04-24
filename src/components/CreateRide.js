@@ -34,7 +34,7 @@ const CreateRide = ({ navigation }) => {
   useEffect(() => {
     const fetchLocations = async () => {
       try {
-        const res = await axios.get('http://10.0.2.2:5000/api/locations');
+        const res = await axios.get('http://192.168.91.19:5000/api/locations');
         const locations = Array.isArray(res.data) 
           ? res.data.map(loc => loc.name) 
           : (res.data.locations || []).map(loc => loc.name);
@@ -121,7 +121,7 @@ const CreateRide = ({ navigation }) => {
         userEmail: user.email,
       };
 
-      const response = await axios.post('http://10.0.2.2:5000/api/rides', rideDetails);
+      const response = await axios.post('http://192.168.91.19:5000/api/rides', rideDetails);
       Alert.alert('Success', 'Ride created successfully!');
       navigation.goBack();
     } catch (error) {
