@@ -23,7 +23,11 @@ const FindRide = ({ navigation }) => {
         return;
       }
       console.log("Fetching rides with params:", { from, to, minSeats });
+<<<<<<< HEAD
       let url = `http://192.168.91.19:5000/api/rides/search?source=${from}&destination=${to}`;
+=======
+      let url = `https://myapp-hu0i.onrender.com/api/rides/search?source=${from}&destination=${to}`;
+>>>>>>> aa1c7911ba826cb4462882b6a72a8d72d1959d6a
       if (minSeats && !isNaN(minSeats)) {
         url += `&minSeats=${minSeats}`;
       }
@@ -53,7 +57,11 @@ const FindRide = ({ navigation }) => {
   const bookRide = async (rideId) => {
     try {
       const response = await axios.post(
+<<<<<<< HEAD
         'http://192.168.91.19:5000/api/request/book',
+=======
+        'https://myapp-hu0i.onrender.com/api/request/book',
+>>>>>>> aa1c7911ba826cb4462882b6a72a8d72d1959d6a
         { 
           rideId, 
           userEmail: user.email,

@@ -41,7 +41,11 @@ const ChatFeature = ({ route, navigation }) => {
 
         const fetchMessages = async () => {
             try {
+<<<<<<< HEAD
                 const response = await axios.get(`http://192.168.91.19:5000/api/chat/${rideId}`);
+=======
+                const response = await axios.get(`https://myapp-hu0i.onrender.com/api/chat/${rideId}`);
+>>>>>>> aa1c7911ba826cb4462882b6a72a8d72d1959d6a
                 setMessages(response.data);
             } catch (error) {
                 console.error('Error fetching messages:', error);
@@ -80,8 +84,13 @@ const ChatFeature = ({ route, navigation }) => {
             setMessages(prev => [...prev, { ...messageToSend, _id: tempId }]);
             setNewMessage('');
 
+<<<<<<< HEAD
             await axios.post(`http://192.168.91.19:5000/api/chat/${rideId}`, messageToSend);
             const response = await axios.get(`http://192.168.91.19:5000/api/chat/${rideId}`);
+=======
+            await axios.post(`https://myapp-hu0i.onrender.com/api/chat/${rideId}`, messageToSend);
+            const response = await axios.get(`https://myapp-hu0i.onrender.com/api/chat/${rideId}`);
+>>>>>>> aa1c7911ba826cb4462882b6a72a8d72d1959d6a
             setMessages(response.data);
         } catch (error) {
             console.error('Error sending message:', error);
