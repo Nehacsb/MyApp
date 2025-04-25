@@ -40,6 +40,17 @@ router.patch('/rides/withdraw-creator/:rideId', async (req, res) => {
       // There are still passengers - update ride
       await ride.save();
       // TODO: Notify remaining passengers in chat
+
+      const systemMessage = new Chat({
+        rideId: req.params.rideId,
+        senderId: null, // Indicates system message
+        senderName: 'System',
+        content: `${user.firstName} ${user.lastName} withdrew from the ride`,
+        timestamp: new Date(),
+        isSystemMessage: true
+      });
+      await systemMessage.save();
+
       return res.json({ 
         message: 'Creator withdrawn from ride',
         rideDeleted: false
@@ -217,6 +228,74 @@ router.get('/rides/search', async (req, res) => {
     res.json(enhancedRides);
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+});
+
+// GET /api/rides/:rideId - Get detailed ride information with passenger names
+router.get('/rides/:rideId', async (req, res) => {
+  try {
+    // Find the ride and populate both creator and passenger details
+    const ride = await Ride.findById(req.params.rideId)
+      .populate({
+        path: 'createdBy',
+        select: 'firstName lastName email phoneNumber gender'
+      })
+      .populate({
+        path: 'passengers',
+        select: 'firstName lastName email phoneNumber gender'
+      })
+      .lean();
+
+    if (!ride) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'Ride not found' 
+      });
+    }
+    console.log("ride",ride);
+
+    // Calculate available seats
+    const seatsLeft = ride.maxCapacity - (ride.passengers?.length || 0);
+
+    // Format the response with all necessary details
+    const response = {
+      success: true,
+      data: {
+        rideId: ride._id,
+        source: ride.source,
+        destination: ride.destination,
+        date: ride.date,
+        time: ride.time,
+        maxCapacity: ride.maxCapacity,
+        seatsLeft,
+        totalFare: ride.totalFare,
+        isFemaleOnly: ride.isFemaleOnly,
+        createdAt: ride.createdAt,
+        driver: {
+          userId: ride.createdBy._id,
+          name: `${ride.createdBy.firstName} ${ride.createdBy.lastName}`,
+          email: ride.createdBy.email,
+          phone: ride.createdBy.phoneNumber,
+          gender: ride.createdBy.gender
+        },
+        passengers: ride.passengers.map(p => ({
+          userId: p._id,
+          name: `${p.firstName} ${p.lastName}`,
+          email: p.email,
+          phone: p.phoneNumber,
+          gender: p.gender
+        }))
+      }
+    };
+
+    res.status(200).json(response);
+  } catch (error) {
+    console.error('Error fetching ride details:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to fetch ride details',
+      error: error.message 
+    });
   }
 });
 

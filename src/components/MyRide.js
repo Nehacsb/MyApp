@@ -27,11 +27,11 @@ const MyRides = () => {
     
         // Fetch rides data
         const [createdResponse, requestedResponse] = await Promise.all([
-          axios.get('http://10.0.2.2:5000/api/rides', {
+          axios.get('http://192.168.236.117:5000/api/rides', {
             params: { email: user.email },
             headers: { 'Content-Type': 'application/json' }
           }),
-          axios.get('http://10.0.2.2:5000/api/request/requests', {
+          axios.get('http://192.168.236.117:5000/api/request/requests', {
             params: { userEmail: user.email },
             headers: { 'Content-Type': 'application/json' }
           })
@@ -153,7 +153,7 @@ const MyRides = () => {
   const creatorWithdraw = async (rideId) => {
     try {
       const response = await axios.patch(
-        `http://10.0.2.2:5000/api/rides/withdraw-creator/${rideId}`,
+        `http://192.168.236.117:5000/api/rides/withdraw-creator/${rideId}`,
         { userEmail: user.email }
       );
 
@@ -184,11 +184,11 @@ const MyRides = () => {
       let response;
       if (ride.status === 'pending') {
         // Withdraw before acceptance
-        response = await axios.delete(`http://10.0.2.2:5000/api/request/requests/${ride.id}`);
+        response = await axios.delete(`http://192.168.236.117:5000/api/request/requests/${ride.id}`);
       } else {
         // Withdraw after acceptance
         response = await axios.patch(
-          `http://10.0.2.2:5000/api/request/withdraw/${ride.rideId}`,
+          `http://192.168.236.117:5000/api/request/withdraw/${ride.rideId}`,
           { requestId: ride.id, seats: ride.seats, userEmail: user.email }
         );
       }
