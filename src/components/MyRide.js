@@ -24,46 +24,68 @@ const MyRides = () => {
           Alert.alert('Error', 'User email not available');
           return;
         }
-
-        // Fetch rides created by user
-        const createdResponse = await axios.get('https://myapp-hu0i.onrender.com/api/rides', {
-          params: { email: user.email },
-          headers: { 'Content-Type': 'application/json' }
-        });
-
-        // Fetch rides requested by user
-        const requestedResponse = await axios.get('https://myapp-hu0i.onrender.com/api/request/requests', {
-          params: { userEmail: user.email },
-          headers: { 'Content-Type': 'application/json' }
-        });
-
-        // Format created rides
-        const formattedCreatedRides = createdResponse.data.map(ride => ({
-          id: ride._id,
-          start: ride.source,
-          destination: ride.destination,
-          date: ride.date ? new Date(ride.date).toLocaleDateString() : 'N/A',
-          time: ride.time || 'N/A',
-          seatsLeft: ride.maxCapacity - (ride.passengers?.length || 0),
-          fare: ride.totalFare || 0,
-          status: 'Driver',
-          type: 'created'
-        }));
-
+    
+        // Fetch rides data
+        const [createdResponse, requestedResponse] = await Promise.all([
+          axios.get('http://10.0.2.2:5000/api/rides', {
+            params: { email: user.email },
+            headers: { 'Content-Type': 'application/json' }
+          }),
+          axios.get('http://10.0.2.2:5000/api/request/requests', {
+            params: { userEmail: user.email },
+            headers: { 'Content-Type': 'application/json' }
+          })
+        ]);
+    
+        console.log('Fetched Rides:', createdResponse.data);
+    
+        // Format date and time helpers
+        const formatDate = (dateStr) => dateStr ? new Date(dateStr).toLocaleDateString() : 'N/A';
+        const formatTime = (timeStr) => {
+          if (!timeStr) return 'N/A';
+          const [hours, minutes] = timeStr.split(':');
+          const hour = parseInt(hours);
+          const ampm = hour >= 12 ? 'PM' : 'AM';
+          const hour12 = hour % 12 || 12;
+          return `${hour12}:${minutes} ${ampm}`;
+        };
+    
+        // Filter created rides - check both email fields
+        const formattedCreatedRides = createdResponse.data
+          .filter(ride => 
+            ride.email?.toLowerCase() === user.email?.toLowerCase() || 
+            ride.createdBy?.email?.toLowerCase() === user.email?.toLowerCase()
+          )
+          .map(ride => ({
+            id: ride._id,
+            start: ride.source,
+            destination: ride.destination,
+            date: formatDate(ride.date),
+            time: formatTime(ride.time),
+            seatsLeft: ride.maxCapacity - (ride.passengers?.length || 0),
+            fare: ride.totalFare || 0,
+            status: 'Driver',
+            type: 'created'
+          }));
+    
+        console.log('Created Rides:', formattedCreatedRides);
+    
         // Format requested rides
-        const formattedRequestedRides = requestedResponse.data.map(request => ({
-          id: request._id,
-          rideId: request.ride?._id,
-          start: request.ride?.source || 'N/A',
-          destination: request.ride?.destination || 'N/A',
-          date: request.ride?.date ? new Date(request.ride.date).toLocaleDateString() : 'N/A',
-          time: request.ride?.time || 'N/A',
-          seatsLeft: request.ride ? (request.ride.maxCapacity - (request.ride.passengers?.length || 0)) : 0,
-          fare: request.ride?.totalFare || 0,
-          status: request.status || 'pending',
-          type: 'requested'
-        }));
-
+        const formattedRequestedRides = requestedResponse.data
+          .filter(request => request.ride)
+          .map(request => ({
+            id: request._id,
+            rideId: request.ride._id,
+            start: request.ride.source || 'N/A',
+            destination: request.ride.destination || 'N/A',
+            date: formatDate(request.ride.date),
+            time: formatTime(request.ride.time),
+            seatsLeft: request.ride.maxCapacity - (request.ride.passengers?.length || 0),
+            fare: request.ride.totalFare || 0,
+            status: request.status || 'pending',
+            type: 'requested'
+          }));
+    
         setRidesData({
           createdRides: formattedCreatedRides,
           requestedRides: formattedRequestedRides
@@ -98,6 +120,130 @@ const MyRides = () => {
     }
   };
 
+
+  const handleWithdraw = async (ride) => {
+    try {
+      if (ride.type === 'created') {
+        // Creator wants to withdraw from their own ride
+        Alert.alert(
+          'Withdraw from Ride',
+          'Are you sure you want to withdraw from the ride you created?.',
+          [
+            { text: 'No', style: 'cancel' },
+            { text: 'Yes', onPress: () => creatorWithdraw(ride.id) }
+          ]
+        );
+      } else {
+        // Passenger wants to withdraw from a ride
+        Alert.alert(
+          'Withdraw from Ride',
+          'Are you sure you want to withdraw from this ride?',
+          [
+            { text: 'No', style: 'cancel' },
+            { text: 'Yes', onPress: () => passengerWithdraw(ride) }
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('Error handling withdraw:', error);
+      Alert.alert('Error', 'Failed to process withdrawal');
+    }
+  };
+
+  const creatorWithdraw = async (rideId) => {
+    try {
+      const response = await axios.patch(
+        `http://10.0.2.2:5000/api/rides/withdraw-creator/${rideId}`,
+        { userEmail: user.email }
+      );
+
+      if (response.status === 200) {
+        // Update local state
+        if (response.data.rideDeleted) {
+          // Ride was completely removed
+          setRidesData(prev => ({
+            ...prev,
+            createdRides: prev.createdRides.filter(r => r.id !== rideId)
+          }));
+          Alert.alert('Success', 'Ride has been cancelled as there were no other passengers');
+        } else {
+          // Creator just removed themselves
+          Alert.alert('Success', 'You have withdrawn from the ride');
+          // Refresh the data
+          fetchRides();
+        }
+      }
+    } catch (error) {
+      console.error('Error in creator withdrawal:', error);
+      Alert.alert('Error', error.response?.data?.message || 'Failed to withdraw from ride');
+    }
+  };
+
+  const passengerWithdraw = async (ride) => {
+    try {
+      let response;
+      if (ride.status === 'pending') {
+        // Withdraw before acceptance
+        response = await axios.delete(`http://10.0.2.2:5000/api/request/requests/${ride.id}`);
+      } else {
+        // Withdraw after acceptance
+        response = await axios.patch(
+          `http://10.0.2.2:5000/api/request/withdraw/${ride.rideId}`,
+          { requestId: ride.id, seats: ride.seats, userEmail: user.email }
+        );
+      }
+
+      if (response.status === 200 || response.status === 204) {
+        // Update local state
+        setRidesData(prev => ({
+          ...prev,
+          requestedRides: prev.requestedRides.filter(r => r.id !== ride.id)
+        }));
+        Alert.alert('Success', 'You have withdrawn from the ride');
+      }
+    } catch (error) {
+      console.error('Error in passenger withdrawal:', error);
+      Alert.alert('Error', error.response?.data?.message || 'Failed to withdraw from ride');
+    }
+  };
+
+
+  const formatStatus = (status) => {
+    switch (status) {
+      case 'Driver': return 'Your Ride';
+      case 'accepted': return 'Confirmed';
+      case 'pending': return 'Pending Approval';
+      case 'rejected': return 'Rejected';
+      default: return status;
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Driver':
+      case 'accepted': return '#4CAF50';
+      case 'pending': return '#FFC107';
+      case 'rejected': return '#F44336';
+      default: return '#A0AEC0';
+    }
+  };
+
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Icon name="arrow-left" size={24} color="#FFB22C" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>My Rides</Text>
+        </View>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading your rides...</Text>
+        </View>
+      </View>
+    );
+  }
   const renderRideCard = ({ item }) => (
     <View style={styles.card}>
       <View style={styles.topRow}>
@@ -121,54 +267,35 @@ const MyRides = () => {
           {formatStatus(item.status)}
         </Text>
       </View>
+      { }
+      <View style={styles.actionButtonsContainer}>
+        {(item.type === 'created' || item.status === 'accepted') && (
+          <TouchableOpacity
+            style={styles.chatButton}
+            onPress={() => navigateToChat(item)}
+          >
+            <Icon name="chat" size={20} color="#FFB22C" />
+            <Text style={styles.chatButtonText}>Chat</Text>
+          </TouchableOpacity>
+        )}
 
-      {(item.type === 'created' || item.status === 'accepted') && (
+        {/* Add Withdraw/Cancel Button */}
         <TouchableOpacity
-          style={styles.chatButton}
-          onPress={() => navigateToChat(item)}
+          style={styles.withdrawButton}
+          onPress={() => handleWithdraw(item)}
         >
-          <Icon name="chat" size={20} color="#FFB22C" />
-          <Text style={styles.chatButtonText}>Chat</Text>
+          <Icon
+            name={item.type === 'created' ? 'account-remove' : 'account-remove'}
+            size={20}
+            color="#F44336"
+          />
+          <Text style={styles.withdrawButtonText}>
+            {item.type === 'created' ? 'Withdraw' : 'Withdraw'}
+          </Text>
         </TouchableOpacity>
-      )}
+      </View>
     </View>
   );
-
-  const formatStatus = (status) => {
-    switch (status) {
-      case 'Driver': return 'Your Ride';
-      case 'accepted': return 'Confirmed';
-      case 'pending': return 'Pending Approval';
-      case 'rejected': return 'Rejected';
-      default: return status;
-    }
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Driver':
-      case 'accepted': return '#4CAF50';
-      case 'pending': return '#FFC107';
-      case 'rejected': return '#F44336';
-      default: return '#A0AEC0';
-    }
-  };
-
-  if (loading) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Icon name="arrow-left" size={24} color="#FFB22C" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>My Rides</Text>
-        </View>
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading your rides...</Text>
-        </View>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>
@@ -201,7 +328,6 @@ const MyRides = () => {
         )}
       </View>
 
-      {/* Divider */}
       <View style={styles.divider} />
 
       {/* Requested Rides Section (Bottom Half) */}
@@ -263,11 +389,11 @@ const styles = StyleSheet.create({
   },
   halfSection: {
     flex: 1,
-    height: height * 0.8, // Adjust based on your header height
+    height: height * 0.4, // Adjust based on your header height
     paddingHorizontal: 8,
   },
   sectionHeader: {
-    backgroundColor: '#FFB22C',
+    backgroundColor: '#FFDB58',
     paddingVertical: 12,
     borderRadius: 8,
     marginVertical: 8,
@@ -276,6 +402,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
     elevation: 3,
+
   },
   sectionHeaderText: {
     fontSize: 18,
@@ -284,8 +411,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   divider: {
-    height: 1,
-    backgroundColor: '#E2E8F0',
+    height: 0.5,
     marginVertical: 8,
   },
   card: {
@@ -338,7 +464,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   fareText: {
-    fontSize: 20,
+    fontSize: 17,
     fontWeight: 'bold',
     color: '#FFB22C',
   },
@@ -361,7 +487,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F7FAFC',
     borderRadius: 16,
     margin: 8,
   },
@@ -378,10 +504,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 10,
     alignSelf: 'flex-start',
+    borderRadius: 8,
   },
   chatButtonText: {
     fontSize: 14,
-    color: '#FFB22C',
+    color: 'black',
+    marginLeft: 4,
+    fontWeight: '600',
+  },
+  actionButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  withdrawButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+    alignSelf: 'flex-start',
+  },
+  withdrawButtonText: {
+    fontSize: 14,
+    color: '#F44336',
     marginLeft: 4,
     fontWeight: '600',
   },

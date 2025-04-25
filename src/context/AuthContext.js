@@ -112,7 +112,7 @@ export const AuthProvider = ({ children }) => {
 
   const verifyOTP = async (email, otp) => {
     try {
-      const response = await fetch("https://myapp-hu0i.onrender.com/api/verify-otp", {
+      const response = await fetch("http://10.0.2.2:5000/api/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, otp }),

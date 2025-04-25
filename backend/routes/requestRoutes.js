@@ -4,7 +4,69 @@ const User = require('../models/User');
 const Request = require('../models/Request'); // Missing import
 const router = express.Router();
 
-// In your GET /request/requests endpoint
+
+// Add this to requestRoutes.js
+
+// DELETE /api/request/requests/:id - Delete a request
+router.delete('/request/requests/:id', async (req, res) => {
+  try {
+    const request = await Request.findByIdAndDelete(req.params.id);
+    if (!request) {
+      return res.status(404).json({ message: 'Request not found' });
+    }
+    res.json({ message: 'Request deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// PATCH /api/request/withdraw/:rideId - Passenger withdraws from an accepted ride
+router.patch('/request/withdraw/:rideId', async (req, res) => {
+  try {
+    const { requestId, seats, userEmail } = req.body;
+    
+    // 1. Get the request and verify
+    const request = await Request.findById(requestId);
+    if (!request) {
+      return res.status(404).json({ message: 'Request not found' });
+    }
+
+    // 2. Get the user
+    const user = await User.findOne({ email: userEmail });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // 3. Remove from ride passengers
+    const ride = await Ride.findById(req.params.rideId);
+    if (!ride) {
+      return res.status(404).json({ message: 'Ride not found' });
+    }
+
+    // Remove all instances of this user (in case they booked multiple seats)
+    const initialPassengerCount = ride.passengers.length;
+    ride.passengers = ride.passengers.filter(
+      passengerId => passengerId.toString() !== user._id.toString()
+    );
+    const removedCount = initialPassengerCount - ride.passengers.length;
+
+    await ride.save();
+
+    // 4. Delete the request
+    await Request.findByIdAndDelete(requestId);
+
+    // 5. TODO: Add message to chat screen
+    // Example: "${user.firstName} withdrew from the ride"
+
+    res.json({ 
+      message: 'Successfully withdrawn from ride',
+      seatsAdded: removedCount,
+      seatsAvailable: ride.maxCapacity - ride.passengers.length
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 // Update the GET /request/requests endpoint
 router.get('/request/requests', async (req, res) => {
   try {

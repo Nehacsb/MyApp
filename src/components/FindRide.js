@@ -23,7 +23,7 @@ const FindRide = ({ navigation }) => {
         return;
       }
       console.log("Fetching rides with params:", { from, to, minSeats });
-      let url = `https://myapp-hu0i.onrender.com/api/rides/search?source=${from}&destination=${to}`;
+      let url = `http://10.0.2.2:5000/api/rides/search?source=${from}&destination=${to}`;
       if (minSeats && !isNaN(minSeats)) {
         url += `&minSeats=${minSeats}`;
       }
@@ -53,7 +53,7 @@ const FindRide = ({ navigation }) => {
   const bookRide = async (rideId) => {
     try {
       const response = await axios.post(
-        'https://myapp-hu0i.onrender.com/api/request/book',
+        'http://10.0.2.2:5000/api/request/book',
         { 
           rideId, 
           userEmail: user.email,

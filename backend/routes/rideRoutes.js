@@ -4,6 +4,72 @@ const User = require('../models/User');
 const Request = require('../models/Request'); // Missing import
 const router = express.Router();
 
+// Add to rideRoutes.js
+
+// PATCH /api/rides/withdraw-creator/:rideId - Creator withdraws from their own ride
+router.patch('/rides/withdraw-creator/:rideId', async (req, res) => {
+  try {
+    const { userEmail } = req.body;
+    const ride = await Ride.findById(req.params.rideId);
+    
+    if (!ride) {
+      return res.status(404).json({ message: 'Ride not found' });
+    }
+
+    // Verify the user is the creator
+    if (ride.email !== userEmail) {
+      return res.status(403).json({ message: 'Only the ride creator can withdraw' });
+    }
+
+    // Remove creator from passengers
+    const user = await User.findOne({ email: userEmail });
+    ride.passengers = ride.passengers.filter(
+      passengerId => passengerId.toString() !== user._id.toString()
+    );
+
+    // Check if there are any passengers left
+    if (ride.passengers.length === 0) {
+      // No passengers left - delete the ride
+      await Ride.findByIdAndDelete(req.params.rideId);
+      await Request.deleteMany({ ride: req.params.rideId });
+      return res.json({ 
+        message: 'Ride cancelled as there were no passengers left',
+        rideDeleted: true
+      });
+    } else {
+      // There are still passengers - update ride
+      await ride.save();
+      // TODO: Notify remaining passengers in chat
+      return res.json({ 
+        message: 'Creator withdrawn from ride',
+        rideDeleted: false
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// DELETE /api/rides/:id - Delete a ride
+router.delete('/rides/:id', async (req, res) => {
+  try {
+    // 1. Delete the ride
+    const ride = await Ride.findByIdAndDelete(req.params.id);
+    if (!ride) {
+      return res.status(404).json({ message: 'Ride not found' });
+    }
+    
+    // 2. Delete all associated requests
+    await Request.deleteMany({ ride: req.params.id });
+    
+    // 3. TODO: Notify all passengers via chat
+    
+    res.json({ message: 'Ride deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // POST /api/rides - Create a new ride
 router.post('/rides', async (req, res) => {  // Changed from '/rides' to '/'
   try {
