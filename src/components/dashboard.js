@@ -114,7 +114,7 @@ const Dashboard = ({ navigation }) => {
        {/* Sidebar */}
        {showSidebar && (
         <View style={styles.sidebarContainer}>
-          <ProfileSidebar onClose={() => setShowSidebar(false)}/>
+          <ProfileSidebar navigation={navigation}  onClose={() => setShowSidebar(false)}/>
         </View>
       )}
       {/* Highlighted Banner */}

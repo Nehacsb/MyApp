@@ -24,6 +24,7 @@ const MyRides = () => {
           Alert.alert('Error', 'User email not available');
           return;
         }
+<<<<<<< HEAD
     
         // Fetch rides data
         const [createdResponse, requestedResponse] = await Promise.all([
@@ -70,6 +71,34 @@ const MyRides = () => {
     
         console.log('Created Rides:', formattedCreatedRides);
     
+=======
+
+        // Fetch rides created by user
+        const createdResponse = await axios.get('http://192.168.236.117:5000/api/rides', {
+          params: { email: user.email },
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        // Fetch rides requested by user
+        const requestedResponse = await axios.get('http://192.168.236.117:5000/api/request/requests', {
+          params: { userEmail: user.email },
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        // Format created rides
+        const formattedCreatedRides = createdResponse.data.map(ride => ({
+          id: ride._id,
+          start: ride.source,
+          destination: ride.destination,
+          date: ride.date ? new Date(ride.date).toLocaleDateString() : 'N/A',
+          time: ride.time || 'N/A',
+          seatsLeft: ride.maxCapacity - (ride.passengers?.length || 0),
+          fare: ride.totalFare || 0,
+          status: 'Driver',
+          type: 'created'
+        }));
+
+>>>>>>> e3fbe9986dded8e4209ae688b5280d0d43516038
         // Format requested rides
         const formattedRequestedRides = requestedResponse.data
           .filter(request => request.ride)

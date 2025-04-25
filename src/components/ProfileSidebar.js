@@ -3,8 +3,9 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { AuthContext } from '../context/AuthContext';
 
-const ProfileSidebar = ({ onClose }) => {
+const ProfileSidebar = ({ navigation,onClose }) => {
     const { user, logout } = useContext(AuthContext);
+    console.log("user", user);
 
     return (
         <View style={styles.sidebar}>
@@ -19,7 +20,6 @@ const ProfileSidebar = ({ onClose }) => {
                 <Text style={styles.name}>
                     {user?.firstName ?? 'First'} {user?.lastName ?? 'Last'}
                 </Text>
-                <Text style={styles.email}>{user?.email ?? 'Email not available'}</Text>
             </View>
 
 
@@ -39,7 +39,7 @@ const ProfileSidebar = ({ onClose }) => {
 
             {/* Buttons */}
             <View style={styles.actions}>
-                <TouchableOpacity style={styles.button}>
+                <TouchableOpacity style={styles.button}onPress={() => navigation.navigate('EditProfile')}>
                     <Icon name="edit" size={18} color="#fff" />
                     <Text style={styles.buttonText}>Edit</Text>
                 </TouchableOpacity>
