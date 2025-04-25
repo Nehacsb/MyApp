@@ -15,6 +15,10 @@ import Header from "../components/Header";
 import DomainManagement from "../components/DomainManagement";
 import LocationManagement from "../components/LocationManagement";
 import ChatFeature from "../components/ChatFeature";
+import ForgotPasswordScreen from "../screens/ForgotPasswordScreen";
+import VerifyResetOtpScreen from "../screens/VerifyResetOtpScreen";
+import ResetPasswordScreen from "../screens/ResetPasswordScreen";
+import EditProfileScreen from "../screens/EditProfileScreen";
 
 import ProfileSidebar from "../components/ProfileSidebar";
 
@@ -75,13 +79,16 @@ const AppNavigator = () => {
               <Stack.Screen name="PendingRequests" component={PendingRequests} />
               <Stack.Screen name="ChatFeature" component={ChatFeature} />
               <Stack.Screen name="ProfileSidebar" component={ProfileSidebar} />
-
+              <Stack.Screen name="EditProfile" component={EditProfileScreen} />
             </>
           )
         ) : (
           <>
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="Signup" component={SignupScreen} />
+            <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+            <Stack.Screen name="VerifyResetOtp" component={VerifyResetOtpScreen} />
+            <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
           </>
         )}
       </Stack.Navigator>

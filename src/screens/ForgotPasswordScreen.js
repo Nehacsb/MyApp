@@ -2,27 +2,31 @@ import React, { useState, useContext } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from "react-native";
 import { AuthContext } from "../context/AuthContext";
 
-const LoginScreen = ({ navigation }) => {
-  const { login, isAdmin } = useContext(AuthContext);
+const ForgotPasswordScreen = ({ navigation }) => {
+  const { forgotPassword } = useContext(AuthContext);
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleLogin = async () => {
+  const handleSendOtp = async () => {
+    if (!email) {
+      Alert.alert("Error", "Please enter your email");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      await login(email, password);
-      
+      await forgotPassword(email);
+      navigation.navigate("VerifyResetOtp", { email });
     } catch (error) {
-      Alert.alert("Login Failed", error.message);
+      Alert.alert("Error", error.message);
     }
     setIsSubmitting(false);
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Welcome Back</Text>
-      <Text style={styles.subtitle}>Sign in to continue</Text>
+      <Text style={styles.title}>Forgot Password</Text>
+      <Text style={styles.subtitle}>Enter your email to receive a reset OTP</Text>
       
       <TextInput
         placeholder="Email"
@@ -33,27 +37,14 @@ const LoginScreen = ({ navigation }) => {
         keyboardType="email-address"
         autoCapitalize="none"
       />
-      <TextInput
-        placeholder="Password"
-        placeholderTextColor="#aaa"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        style={styles.input}
-      />
-      <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
-        <Text style={styles.link}>Forgot Password?</Text>
+      
+      <TouchableOpacity style={styles.button} onPress={handleSendOtp} disabled={isSubmitting}>
+        {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Send OTP</Text>}
       </TouchableOpacity>
       
-      <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={isSubmitting}>
-        {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Login</Text>}
+      <TouchableOpacity onPress={() => navigation.goBack()}>
+        <Text style={styles.link}>Back to Login</Text>
       </TouchableOpacity>
-      
-      <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
-        <Text style={styles.link}>Don't have an account? Sign up</Text>
-      </TouchableOpacity>
-
-      
     </View>
   );
 };
@@ -63,18 +54,18 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     padding: 24,
-    backgroundColor: "#FFFFFF", // Light background
+    backgroundColor: "#FFFFFF",
   },
   title: {
     fontSize: 28,
     fontWeight: "600",
-    color: "#111827", // Dark neutral text
+    color: "#111827",
     textAlign: "center",
     marginBottom: 6,
   },
   subtitle: {
     fontSize: 16,
-    color: "#6B7280", // Subtle gray
+    color: "#6B7280",
     textAlign: "center",
     marginBottom: 24,
   },
@@ -83,7 +74,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderRadius: 10,
-    backgroundColor: "#F9FAFB", // Light gray background
+    backgroundColor: "#F9FAFB",
     borderWidth: 1,
     borderColor: "#E5E7EB",
     color: "#111827",
@@ -91,7 +82,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   button: {
-    backgroundColor: "#111827", // Uber black
+    backgroundColor: "#111827",
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: "center",
@@ -105,12 +96,11 @@ const styles = StyleSheet.create({
   },
   link: {
     marginTop: 20,
-    color: "#2563EB", // Formal blue
+    color: "#2563EB",
     fontSize: 15,
     textAlign: "center",
     fontWeight: "500",
   },
 });
 
-
-export default LoginScreen;
+export default ForgotPasswordScreen;

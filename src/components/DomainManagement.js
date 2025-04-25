@@ -30,11 +30,7 @@ const DomainManagement = () => {
     const fetchDomains = async () => {
       setIsLoading(true);
       try {
-<<<<<<< HEAD
-        const response = await fetch("http://192.168.91.19:5000/api/admin/authorized_domain");
-=======
-        const response = await fetch("https://myapp-hu0i.onrender.com/api/admin/authorized_domain");
->>>>>>> aa1c7911ba826cb4462882b6a72a8d72d1959d6a
+        const response = await fetch("http://192.168.236.117:5000/api/admin/authorized_domain");
         const data = await handleResponse(response);
         setAuthorizedDomains(Array.isArray(data) ? data : []);
       } catch (error) {
@@ -53,11 +49,7 @@ const DomainManagement = () => {
     if (!trimmedDomain) return;
 
     try {
-<<<<<<< HEAD
-      const response = await fetch("http://192.168.91.19:5000/api/admin/authorize_domain", {
-=======
-      const response = await fetch("https://myapp-hu0i.onrender.com/api/admin/authorize_domain", {
->>>>>>> aa1c7911ba826cb4462882b6a72a8d72d1959d6a
+      const response = await fetch("http://192.168.236.117:5000/api/admin/authorize_domain", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ domain: trimmedDomain }),
@@ -76,11 +68,7 @@ const DomainManagement = () => {
   // Remove domain
   const removeDomain = async (domainToRemove) => {
     try {
-<<<<<<< HEAD
-      const response = await fetch("http://192.168.91.19:5000/api/admin/remove_domain", {
-=======
-      const response = await fetch("https://myapp-hu0i.onrender.com/api/admin/remove_domain", {
->>>>>>> aa1c7911ba826cb4462882b6a72a8d72d1959d6a
+      const response = await fetch("http://192.168.236.117:5000/api/admin/remove_domain", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ domain: domainToRemove }),
@@ -194,11 +182,7 @@ const DomainManagement = () => {
       // Upload each domain
       for (const domainName of newDomains) {
         try {
-<<<<<<< HEAD
-          const response = await fetch('http://192.168.91.19:5000/api/admin/authorize_domain', {
-=======
-          const response = await fetch('https://myapp-hu0i.onrender.com/api/admin/authorize_domain', {
->>>>>>> aa1c7911ba826cb4462882b6a72a8d72d1959d6a
+          const response = await fetch('http://192.168.236.117:5000/api/admin/authorize_domain', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ domain: domainName }),

@@ -18,22 +18,14 @@ const PendingRequests = ({ navigation }) => {
   const fetchPendingRequests = async () => {
     try {
       // Get rides created by this user
-<<<<<<< HEAD
-      const ridesResponse = await axios.get('http://192.168.91.19:5000/api/rides', {
-=======
-      const ridesResponse = await axios.get('https://myapp-hu0i.onrender.com/api/rides', {
->>>>>>> aa1c7911ba826cb4462882b6a72a8d72d1959d6a
+      const ridesResponse = await axios.get('http://192.168.236.117:5000/api/rides', {
         params: { email: user.email }
       });
       
       const rideIds = ridesResponse.data.map(ride => ride._id);
       
       // Get pending requests for these rides
-<<<<<<< HEAD
-      const requestsResponse = await axios.get('http://192.168.91.19:5000/api/request/requests', {
-=======
-      const requestsResponse = await axios.get('https://myapp-hu0i.onrender.com/api/request/requests', {
->>>>>>> aa1c7911ba826cb4462882b6a72a8d72d1959d6a
+      const requestsResponse = await axios.get('http://192.168.236.117:5000/api/request/requests', {
         params: { 
           rideIds: JSON.stringify(rideIds),
           status: 'pending'
@@ -61,11 +53,7 @@ const PendingRequests = ({ navigation }) => {
     try {
       console.log('Adding passenger:', { rideId, userId, seats });
       await axios.patch(
-<<<<<<< HEAD
-        `http://192.168.91.19:5000/api/request/${rideId}/add-passenger`,
-=======
-        `https://myapp-hu0i.onrender.com/api/request/${rideId}/add-passenger`,
->>>>>>> aa1c7911ba826cb4462882b6a72a8d72d1959d6a
+        `http://192.168.236.117:5000/api/request/${rideId}/add-passenger`,
         { userId, seats }
       );
     } catch (error) {
@@ -78,11 +66,7 @@ const PendingRequests = ({ navigation }) => {
     try {
       // First update the request status
       const response = await axios.patch(
-<<<<<<< HEAD
-        `http://192.168.91.19:5000/api/request/requests/${requestId}`,
-=======
-        `https://myapp-hu0i.onrender.com/api/request/requests/${requestId}`,
->>>>>>> aa1c7911ba826cb4462882b6a72a8d72d1959d6a
+        `http://192.168.236.117:5000/api/request/requests/${requestId}`,
         { status: action }
       );
       

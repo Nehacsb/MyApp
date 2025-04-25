@@ -95,49 +95,63 @@ router.get('/rides', async (req, res) => {
 });
 
   // GET /api/rides/search - Find available rides based on source and/or destination
-  // Modify the search endpoint to filter by minimum seats
-  router.get('/rides/search', async (req, res) => {
-    try {
-      const { source, destination, minSeats } = req.query;
-      let query = {};
-      console.log("here_rides_search",source,destination,minSeats);
-      if (source) {
-        query.source = { $regex: source, $options: 'i' };
-      }
-      
-      if (destination) {
-        query.destination = { $regex: destination, $options: 'i' };
-      }
-  
-      // Add minSeats filter if provided
-      if (minSeats && !isNaN(minSeats)) {
-        const seatsNum = parseInt(minSeats);
-        query.$expr = {
-          $gte: [
-            { $subtract: ['$maxCapacity', { $size: '$passengers' }] },
-            seatsNum
-          ]
-        };
-      }
-  
-      const rides = await Ride.find(query)
-        .populate('createdBy', 'firstName lastName email phoneNumber')
-        .lean();
-  
-      // Calculate available seats and enhance ride data
-      const enhancedRides = rides.map(ride => {
-        const passengersCount = ride.passengers?.length || 0;
-        return {
-          ...ride,
-          seatsLeft: ride.maxCapacity - passengersCount,
-          driver: ride.createdBy // For frontend consistency
-        };
-      });
-  
-      res.json(enhancedRides);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
+  // In rideRoutes.js, update the search endpoint
+router.get('/rides/search', async (req, res) => {
+  try {
+    const { source, destination, minSeats, date } = req.query;
+
+    let query = {};
+    console.log("here_rides_search", source, destination, minSeats, date);
+
+    if (source) {
+      query.source = { $regex: source, $options: 'i' };
     }
-  });
+    
+    if (destination) {
+      query.destination = { $regex: destination, $options: 'i' };
+    }
+
+    // Add date filter if provided
+    if (date) {
+      const searchDate = new Date(date);
+      const nextDay = new Date(searchDate);
+      nextDay.setDate(nextDay.getDate() + 1);
+      
+      query.date = {
+        $gte: searchDate,
+        $lt: nextDay
+      };
+    }
+
+    // Add minSeats filter if provided
+    if (minSeats && !isNaN(minSeats)) {
+      const seatsNum = parseInt(minSeats);
+      query.$expr = {
+        $gte: [
+          { $subtract: ['$maxCapacity', { $size: '$passengers' }] },
+          seatsNum
+        ]
+      };
+    }
+
+    const rides = await Ride.find(query)
+      .populate('createdBy', 'firstName lastName email phoneNumber')
+      .lean();
+
+    // Calculate available seats and enhance ride data
+    const enhancedRides = rides.map(ride => {
+      const passengersCount = ride.passengers?.length || 0;
+      return {
+        ...ride,
+        seatsLeft: ride.maxCapacity - passengersCount,
+        driver: ride.createdBy // For frontend consistency
+      };
+    });
+
+    res.json(enhancedRides);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 
 module.exports = router;

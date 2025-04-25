@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, Alert, Image } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 
@@ -11,6 +12,8 @@ const FindRide = ({ navigation }) => {
   const [to, setTo] = useState('');
   const [minSeats, setMinSeats] = useState('');
   const [selectedSeats, setSelectedSeats] = useState(1);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   useEffect(() => {
     fetchRides();
@@ -18,20 +21,21 @@ const FindRide = ({ navigation }) => {
 
   const fetchRides = async () => {
     try {
-      if (!from && !to) {
+      if (!from && !to && !selectedDate) {
         console.error("Please provide a source or destination");
         return;
       }
-      console.log("Fetching rides with params:", { from, to, minSeats });
-<<<<<<< HEAD
-      let url = `http://192.168.91.19:5000/api/rides/search?source=${from}&destination=${to}`;
-=======
-      let url = `https://myapp-hu0i.onrender.com/api/rides/search?source=${from}&destination=${to}`;
->>>>>>> aa1c7911ba826cb4462882b6a72a8d72d1959d6a
+      //console.log("Fetching rides with params:", { from, to, minSeats, date: selectedDate.toISOString().split('T')[0] });
+      let url = `http://192.168.236.117:5000/api/rides/search?source=${from}&destination=${to}`;
+      
+      // Add date only if selected
+      if (selectedDate) {
+        url += `&date=${selectedDate.toISOString().split('T')[0]}`;
+      }
       if (minSeats && !isNaN(minSeats)) {
         url += `&minSeats=${minSeats}`;
       }
-
+      console.log("URL:", url);
       const response = await axios.get(url, {
         headers: { Authorization: `Bearer ${userToken}` },
       });
@@ -47,21 +51,27 @@ const FindRide = ({ navigation }) => {
   };
 
   const handleSearch = () => {
-    if (!from && !to) {
-      Alert.alert('Error', 'Please enter at least one location.');
+    if (!from && !to && !selectedDate) {
+      Alert.alert('Error', 'Please enter at least one search parameter (location or date).');
       return;
     }
     fetchRides();
   };
 
+  const onChangeDate = (event, selected) => {
+    const currentDate = selected || selectedDate;
+    setShowDatePicker(false);
+    setSelectedDate(currentDate);
+  };
+
+  const clearDate = () => {
+    setSelectedDate(null);
+  };
+
   const bookRide = async (rideId) => {
     try {
       const response = await axios.post(
-<<<<<<< HEAD
-        'http://192.168.91.19:5000/api/request/book',
-=======
-        'https://myapp-hu0i.onrender.com/api/request/book',
->>>>>>> aa1c7911ba826cb4462882b6a72a8d72d1959d6a
+        'http://192.168.236.117:5000/api/request/book',
         { 
           rideId, 
           userEmail: user.email,
@@ -139,6 +149,44 @@ const FindRide = ({ navigation }) => {
             onChangeText={(text) => /^\d*$/.test(text) && setMinSeats(text)}
           />
         </View>
+
+        {/* Optional Date Picker */}
+        <View style={styles.dateContainer}>
+          <TouchableOpacity 
+            style={[styles.searchInputContainer, { flex: 1 }]}
+            onPress={() => setShowDatePicker(true)}
+          >
+            <MaterialIcons name="calendar-today" size={20} color="#FFB22C" />
+            <Text style={styles.dateText}>
+              {selectedDate 
+                ? selectedDate.toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric' 
+                  })
+                : 'Any date'}
+            </Text>
+          </TouchableOpacity>
+          
+          {selectedDate && (
+            <TouchableOpacity 
+              style={styles.clearDateButton}
+              onPress={clearDate}
+            >
+              <MaterialIcons name="close" size={20} color="#FF0000" />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {showDatePicker && (
+          <DateTimePicker
+            value={selectedDate || new Date()}
+            mode="date"
+            display="default"
+            onChange={onChangeDate}
+            minimumDate={new Date()}
+          />
+        )}
 
         <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
           <Text style={styles.searchButtonText}>Search</Text>
@@ -385,6 +433,22 @@ const styles = StyleSheet.create({
     color: '#000',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  dateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  dateText: {
+    flex: 1,
+    fontSize: 16,
+    color: '#000',
+    marginLeft: 8,
+    paddingVertical: 10,
+  },
+  clearDateButton: {
+    marginLeft: 8,
+    padding: 8,
   },
 });
 

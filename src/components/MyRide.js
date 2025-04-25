@@ -26,21 +26,13 @@ const MyRides = () => {
         }
 
         // Fetch rides created by user
-<<<<<<< HEAD
-        const createdResponse = await axios.get('http://192.168.91.19:5000/api/rides', {
-=======
-        const createdResponse = await axios.get('https://myapp-hu0i.onrender.com/api/rides', {
->>>>>>> aa1c7911ba826cb4462882b6a72a8d72d1959d6a
+        const createdResponse = await axios.get('http://192.168.236.117:5000/api/rides', {
           params: { email: user.email },
           headers: { 'Content-Type': 'application/json' }
         });
 
         // Fetch rides requested by user
-<<<<<<< HEAD
-        const requestedResponse = await axios.get('http://192.168.91.19:5000/api/request/requests', {
-=======
-        const requestedResponse = await axios.get('https://myapp-hu0i.onrender.com/api/request/requests', {
->>>>>>> aa1c7911ba826cb4462882b6a72a8d72d1959d6a
+        const requestedResponse = await axios.get('http://192.168.236.117:5000/api/request/requests', {
           params: { userEmail: user.email },
           headers: { 'Content-Type': 'application/json' }
         });

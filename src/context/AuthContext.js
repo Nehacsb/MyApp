@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await fetch(`http://192.168.91.19:5000/api/login`, {
+      const response = await fetch(`http://192.168.236.117:5000/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -50,6 +50,8 @@ export const AuthProvider = ({ children }) => {
 
       const data = await response.json();
       const { user, token, isAdmin } = data;
+      //console.log("Login data:", data); // Debugging
+      //console.log("user:",user);
 
       await AsyncStorage.setItem("user", JSON.stringify(user));
       await AsyncStorage.setItem("token", token);
@@ -69,7 +71,7 @@ export const AuthProvider = ({ children }) => {
     try {
       // Fetch allowed domains first
       console.log("email:",email);
-      const domainResponse = await fetch("http://192.168.91.19:5000/api/admin/authorized_domain");
+      const domainResponse = await fetch("http://192.168.236.117:5000/api/admin/authorized_domain");
       const allowedDomains = await domainResponse.json();
       console.log("authorised_emails:",allowedDomains);
   
@@ -85,7 +87,7 @@ export const AuthProvider = ({ children }) => {
       }
   
       // Proceed with signup
-      const response = await fetch("http://192.168.91.19:5000/api/signup", {
+      const response = await fetch("http://192.168.236.117:5000/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ firstName, lastName, email, password, phoneNumber, gender }),
@@ -113,11 +115,7 @@ export const AuthProvider = ({ children }) => {
 
   const verifyOTP = async (email, otp) => {
     try {
-<<<<<<< HEAD
-      const response = await fetch("http://192.168.91.19:5000/api/verify-otp", {
-=======
-      const response = await fetch("https://myapp-hu0i.onrender.com/api/verify-otp", {
->>>>>>> aa1c7911ba826cb4462882b6a72a8d72d1959d6a
+      const response = await fetch("http://192.168.236.117:5000/api/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, otp }),
@@ -164,6 +162,96 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+
+  /////
+  const forgotPassword = async (email) => {
+    try {
+      const response = await fetch(`http://192.168.236.117:5000/api/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to send OTP");
+      }
+  
+      return await response.json();
+    } catch (error) {
+      console.error("Forgot Password Error:", error);
+      throw error;
+    }
+  };
+  
+  const verifyResetOtp = async (email, otp) => {
+    try {
+      const response = await fetch(`http://192.168.236.117:5000/api/verify-reset-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, otp }),
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "OTP verification failed");
+      }
+  
+      return await response.json();
+    } catch (error) {
+      console.error("Verify Reset OTP Error:", error);
+      throw error;
+    }
+  };
+  
+  const resetPassword = async (email, newPassword) => {
+    try {
+      const response = await fetch(`http://192.168.236.117:5000/api/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, newPassword }),
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Password reset failed");
+      }
+  
+      return await response.json();
+    } catch (error) {
+      console.error("Reset Password Error:", error);
+      throw error;
+    }
+  };
+
+  const updateProfile = async (email, updates) => {
+    try {
+      console.log("updates:",updates);
+      const response = await fetch(`http://192.168.236.117:5000/api/update-profile`, {
+        method: "PUT",
+        headers: { 
+          "Content-Type": "application/json",
+          //"Authorization": `Bearer ${userToken}` 
+        },
+        body: JSON.stringify({ email, ...updates }),
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to update profile");
+      }
+  
+      const data = await response.json();
+      setUser(data.user); // Update the user in context
+      await AsyncStorage.setItem("user", JSON.stringify(data.user)); // Update in storage
+      
+      return data;
+    } catch (error) {
+      console.error("Update Profile Error:", error);
+      throw error;
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -185,6 +273,10 @@ export const AuthProvider = ({ children }) => {
         logout,
         signup,
         verifyOTP,
+        forgotPassword,
+        verifyResetOtp,
+        resetPassword,
+        updateProfile,
       }}
     >
       {!isLoading && children}
