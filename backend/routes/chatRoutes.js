@@ -7,6 +7,13 @@ const Ride = require('../models/Ride');
 router.get('/chat/:rideId', async (req, res) => {
   try {
     const { rideId } = req.params;
+    const { since } = req.query;
+
+    let query = { rideId };
+    if (since) {
+      query.timestamp = { $gt: new Date(since) };
+    }
+    
     console.log("Received rideId in API:", rideId);
   
 

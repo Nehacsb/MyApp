@@ -19,6 +19,7 @@ import ForgotPasswordScreen from "../screens/ForgotPasswordScreen";
 import VerifyResetOtpScreen from "../screens/VerifyResetOtpScreen";
 import ResetPasswordScreen from "../screens/ResetPasswordScreen";
 import EditProfileScreen from "../screens/EditProfileScreen";
+import RideDetailsScreen from "../screens/RideDetailsScreen"; 
 
 import ProfileSidebar from "../components/ProfileSidebar";
 
@@ -80,6 +81,7 @@ const AppNavigator = () => {
               <Stack.Screen name="ChatFeature" component={ChatFeature} />
               <Stack.Screen name="ProfileSidebar" component={ProfileSidebar} />
               <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+              <Stack.Screen name="RideDetails" component={RideDetailsScreen} />
             </>
           )
         ) : (

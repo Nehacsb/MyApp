@@ -24,15 +24,14 @@ const MyRides = () => {
           Alert.alert('Error', 'User email not available');
           return;
         }
-<<<<<<< HEAD
     
         // Fetch rides data
         const [createdResponse, requestedResponse] = await Promise.all([
-          axios.get('http://10.0.2.2:5000/api/rides', {
+          axios.get('http://192.168.236.117:5000/api/rides', {
             params: { email: user.email },
             headers: { 'Content-Type': 'application/json' }
           }),
-          axios.get('http://10.0.2.2:5000/api/request/requests', {
+          axios.get('http://192.168.236.117:5000/api/request/requests', {
             params: { userEmail: user.email },
             headers: { 'Content-Type': 'application/json' }
           })
@@ -71,34 +70,6 @@ const MyRides = () => {
     
         console.log('Created Rides:', formattedCreatedRides);
     
-=======
-
-        // Fetch rides created by user
-        const createdResponse = await axios.get('http://192.168.236.117:5000/api/rides', {
-          params: { email: user.email },
-          headers: { 'Content-Type': 'application/json' }
-        });
-
-        // Fetch rides requested by user
-        const requestedResponse = await axios.get('http://192.168.236.117:5000/api/request/requests', {
-          params: { userEmail: user.email },
-          headers: { 'Content-Type': 'application/json' }
-        });
-
-        // Format created rides
-        const formattedCreatedRides = createdResponse.data.map(ride => ({
-          id: ride._id,
-          start: ride.source,
-          destination: ride.destination,
-          date: ride.date ? new Date(ride.date).toLocaleDateString() : 'N/A',
-          time: ride.time || 'N/A',
-          seatsLeft: ride.maxCapacity - (ride.passengers?.length || 0),
-          fare: ride.totalFare || 0,
-          status: 'Driver',
-          type: 'created'
-        }));
-
->>>>>>> e3fbe9986dded8e4209ae688b5280d0d43516038
         // Format requested rides
         const formattedRequestedRides = requestedResponse.data
           .filter(request => request.ride)
@@ -182,7 +153,7 @@ const MyRides = () => {
   const creatorWithdraw = async (rideId) => {
     try {
       const response = await axios.patch(
-        `http://10.0.2.2:5000/api/rides/withdraw-creator/${rideId}`,
+        `http://192.168.236.117:5000/api/rides/withdraw-creator/${rideId}`,
         { userEmail: user.email }
       );
 
@@ -213,11 +184,11 @@ const MyRides = () => {
       let response;
       if (ride.status === 'pending') {
         // Withdraw before acceptance
-        response = await axios.delete(`http://10.0.2.2:5000/api/request/requests/${ride.id}`);
+        response = await axios.delete(`http://192.168.236.117:5000/api/request/requests/${ride.id}`);
       } else {
         // Withdraw after acceptance
         response = await axios.patch(
-          `http://10.0.2.2:5000/api/request/withdraw/${ride.rideId}`,
+          `http://192.168.236.117:5000/api/request/withdraw/${ride.rideId}`,
           { requestId: ride.id, seats: ride.seats, userEmail: user.email }
         );
       }
