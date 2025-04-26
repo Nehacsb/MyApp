@@ -12,24 +12,22 @@ const RideDetailsScreen = ({ route, navigation }) => {
     useEffect(() => {
         const fetchRideDetails = async () => {
             try {
-                console.log('Fetching ride details for ID:', rideId); // Debugging
-                const response = await axios.get(`http://192.168.236.117:5000/api/rides/${rideId}`);
-                
-                console.log('Ride details response:', response.data); // Debugging
-                console.log("id:",response.data.rideId);
-                // Properly extract and assign the ride data
-                if (response.data && response.data.rideId) {
-                    console.log("here");
+                console.log('Fetching ride details for ID:', rideId);
+                const response = await axios.get(`http://10.0.2.2:5000/api/rides/${rideId}`);
+
+                console.log('Ride details response:', response.data);
+                console.log("id:", response.data.data.rideId); // corrected
+
+                if (response.data && response.data.data && response.data.data.rideId) {
                     const rideData = {
-                        rideId: response.data.rideId,
-                        source: response.data.source,
-                        destination: response.data.destination,
-                        date: response.data.date,
-                        time: response.data.time,
-                        maxCapacity: response.data.maxCapacity,
-                        totalFare: response.data.totalFare,
-                        passengers: response.data.passengers || [],
-                        // Add any other necessary fields
+                        rideId: response.data.data.rideId,
+                        source: response.data.data.source,
+                        destination: response.data.data.destination,
+                        date: response.data.data.date,
+                        time: response.data.data.time,
+                        maxCapacity: response.data.data.maxCapacity,
+                        totalFare: response.data.data.totalFare,
+                        passengers: response.data.data.passengers || [],
                     };
                     setRide(rideData);
                 } else {
@@ -79,16 +77,20 @@ const RideDetailsScreen = ({ route, navigation }) => {
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Ride Details</Text>
                 {isFromChat && (
-                    <TouchableOpacity onPress={() => navigation.navigate('Chat', { 
-                        rideId, 
-                        rideDetails: {
-                            start: ride.source,
-                            destination: ride.destination
-                        }
-                    })}>
+                    <TouchableOpacity
+                        style={styles.chatButton}
+                        onPress={() => navigation.navigate('ChatFeature', {
+                            rideId,
+                            rideDetails: {
+                                start: ride.source,
+                                destination: ride.destination
+                            }
+                        })}
+                    >
                         <Icon name="message-text" size={24} color="#FFB22C" />
                     </TouchableOpacity>
                 )}
+
             </View>
 
             <View style={styles.detailsContainer}>
@@ -96,21 +98,21 @@ const RideDetailsScreen = ({ route, navigation }) => {
                     <Icon name="map-marker" size={20} color="#FFB22C" />
                     <Text style={styles.detailText}>{ride.source} → {ride.destination}</Text>
                 </View>
-                
+
                 <View style={styles.detailRow}>
                     <Icon name="calendar" size={20} color="#FFB22C" />
                     <Text style={styles.detailText}>
                         {new Date(ride.date).toLocaleDateString()} at {ride.time}
                     </Text>
                 </View>
-                
+
                 <View style={styles.detailRow}>
                     <Icon name="account-group" size={20} color="#FFB22C" />
                     <Text style={styles.detailText}>
                         {ride.passengers.length}/{ride.maxCapacity} seats filled
                     </Text>
                 </View>
-                
+
                 <View style={styles.detailRow}>
                     <Icon name="cash" size={20} color="#FFB22C" />
                     <Text style={styles.detailText}>₹{ride.totalFare} total fare</Text>
@@ -120,19 +122,21 @@ const RideDetailsScreen = ({ route, navigation }) => {
             <Text style={styles.passengersTitle}>Passengers:</Text>
             <FlatList
                 data={ride.passengers}
-                keyExtractor={(item) => item._id}
-                renderItem={({ item }) => (
+                keyExtractor={(item, index) => (item.userId ? item.userId.toString() : index.toString())}
+                renderItem={({ item, index }) => (
                     <View style={styles.passengerItem}>
                         <Icon name="account" size={24} color="#555" />
                         <Text style={styles.passengerName}>
-                            {item.firstName} {item.lastName}
+                            {item.name} {ride.passengers.length > 1 ? `(${index + 1})` : ''}
                         </Text>
+
                     </View>
                 )}
                 ListEmptyComponent={
                     <Text style={styles.noPassengers}>No passengers yet</Text>
                 }
             />
+
         </View>
     );
 };

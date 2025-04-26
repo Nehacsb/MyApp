@@ -21,12 +21,13 @@ const FindRide = ({ navigation }) => {
 
   const fetchRides = async () => {
     try {
-      if (!from && !to && !selectedDate) {
-        console.error("Please provide a source or destination");
-        return;
+      if (!from.trim() && !to.trim()) {
+        setRides([]); // Clear previous results
+        console.log("Skipping fetch - no search criteria");
+        return ;
       }
       console.log("Fetching rides with params:", { from, to, minSeats });
-      let url = `http://192.168.236.117:5000/api/rides/search?source=${from}&destination=${to}`;
+      let url = `http://10.0.2.2:5000/api/rides/search?source=${from}&destination=${to}`;
       if (minSeats && !isNaN(minSeats)) {
         url += `&minSeats=${minSeats}`;
       }
@@ -66,15 +67,15 @@ const FindRide = ({ navigation }) => {
   const bookRide = async (rideId) => {
     try {
       const response = await axios.post(
-        'http://192.168.236.117:5000/api/request/book',
-        { 
-          rideId, 
+        'http://10.0.2.2:5000/api/request/book',
+        {
+          rideId,
           userEmail: user.email,
           seats: selectedSeats
         },
         { headers: { 'Content-Type': 'application/json' } }
       );
-      
+
       Alert.alert('Request Sent!', response.data.message);
     } catch (error) {
       Alert.alert('Error', error.response?.data?.message || 'Failed to book ride');
@@ -83,8 +84,8 @@ const FindRide = ({ navigation }) => {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
       day: 'numeric',
       year: 'numeric'
     });
@@ -145,35 +146,36 @@ const FindRide = ({ navigation }) => {
           />
         </View>
 
-        {/* Optional Date Picker */}
+
         <View style={styles.dateContainer}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.searchInputContainer, { flex: 1 }]}
             onPress={() => setShowDatePicker(true)}
           >
             <MaterialIcons name="calendar-today" size={20} color="#FFB22C" />
             <Text style={styles.dateText}>
-              {selectedDate 
-                ? selectedDate.toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'short', 
-                    day: 'numeric' 
-                  })
+              {selectedDate
+                ? selectedDate.toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric'
+                })
                 : 'Any date'}
             </Text>
           </TouchableOpacity>
-          
-          {selectedDate && (
-            <TouchableOpacity 
+
+          {selectedDate ? (
+            <TouchableOpacity
               style={styles.clearDateButton}
               onPress={clearDate}
             >
               <MaterialIcons name="close" size={20} color="#FF0000" />
             </TouchableOpacity>
-          )}
+          ) : null}
+
         </View>
 
-        {showDatePicker && (
+        {showDatePicker ? (
           <DateTimePicker
             value={selectedDate || new Date()}
             mode="date"
@@ -181,7 +183,8 @@ const FindRide = ({ navigation }) => {
             onChange={onChangeDate}
             minimumDate={new Date()}
           />
-        )}
+        ) : null}
+
 
         <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
           <Text style={styles.searchButtonText}>Search</Text>
@@ -194,11 +197,13 @@ const FindRide = ({ navigation }) => {
         keyExtractor={(item) => item._id}
         contentContainerStyle={styles.ridesList}
         renderItem={({ item }) => (
+
+  
           <View style={styles.rideCard}>
             {/* Route and Date */}
             <View style={styles.rideHeader}>
               <Text style={styles.rideRoute}>{item.source} → {item.destination}</Text>
-              <Text style={styles.rideDate}>{formatDate(item.date)}</Text>
+              <Text style={styles.rideDate}>{item.date ? formatDate(item.date) : 'Date not specified'}</Text>
             </View>
 
             {/* Driver Info */}
@@ -208,7 +213,7 @@ const FindRide = ({ navigation }) => {
               </View>
               <View style={styles.driverDetails}>
                 <Text style={styles.driverName}>
-                  {item.createdBy?.firstName} {item.createdBy?.lastName}
+                  {item.createdBy?.firstName || 'Driver'} {item.createdBy?.lastName || ''}
                 </Text>
                 <Text style={styles.driverEmail}>{item.createdBy?.email}</Text>
               </View>
@@ -218,17 +223,17 @@ const FindRide = ({ navigation }) => {
             <View style={styles.rideDetails}>
               <View style={styles.detailItem}>
                 <MaterialIcons name="access-time" size={16} color="#FFB22C" />
-                <Text style={styles.detailText}>{item.time}</Text>
+                <Text style={styles.detailText}>{item.time || 'N/A'}</Text>
               </View>
-              
+
               <View style={styles.detailItem}>
                 <MaterialIcons name="event-seat" size={16} color="#FFB22C" />
-                <Text style={styles.detailText}>{item.seatsLeft} seats left</Text>
+                <Text style={styles.detailText}>{item.seatsLeft !== undefined ? `${item.seatsLeft} seats left` : 'N/A'}</Text>
               </View>
-              
+
               <View style={styles.detailItem}>
                 <MaterialIcons name="currency-rupee" size={16} color="#FFB22C" />
-                <Text style={styles.detailText}>{item.totalFare}</Text>
+                <Text style={styles.detailText}>{item.totalFare || 'N/A'}</Text>
               </View>
             </View>
 
@@ -236,15 +241,15 @@ const FindRide = ({ navigation }) => {
             <View style={styles.seatSelection}>
               <Text style={styles.seatLabel}>Select Seats:</Text>
               <View style={styles.seatControls}>
-                <TouchableOpacity 
-                  style={styles.seatButton} 
+                <TouchableOpacity
+                  style={styles.seatButton}
                   onPress={() => setSelectedSeats(Math.max(1, selectedSeats - 1))}
                 >
                   <Text style={styles.seatButtonText}>-</Text>
                 </TouchableOpacity>
                 <Text style={styles.seatCount}>{selectedSeats}</Text>
-                <TouchableOpacity 
-                  style={styles.seatButton} 
+                <TouchableOpacity
+                  style={styles.seatButton}
                   onPress={() => setSelectedSeats(Math.min(item.seatsLeft, selectedSeats + 1))}
                 >
                   <Text style={styles.seatButtonText}>+</Text>
@@ -253,7 +258,7 @@ const FindRide = ({ navigation }) => {
             </View>
 
             {/* Book Button */}
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.bookButton}
               onPress={() => bookRide(item._id)}
             >

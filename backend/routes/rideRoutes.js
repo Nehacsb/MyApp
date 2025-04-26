@@ -232,6 +232,9 @@ router.get('/rides/search', async (req, res) => {
 });
 
 // GET /api/rides/:rideId - Get detailed ride information with passenger names
+// Get a ride by rideId
+
+
 router.get('/rides/:rideId', async (req, res) => {
   try {
     // Find the ride and populate both creator and passenger details

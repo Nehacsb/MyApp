@@ -44,15 +44,15 @@ const ChatFeature = ({ route, navigation }) => {
         fetchMessages();
 
         // Set up polling for new messages
-        //const interval = setInterval(fetchMessages, 3000);
+        // const interval = setInterval(fetchMessages, 3000);
 
-        //return () => clearInterval(interval);
+        // return () => clearInterval(interval);
     }, [rideId]);
 
     const fetchMessages = async () => {
         try {
             const response = await axios.get(
-                `http://192.168.236.117:5000/api/chat/${rideId}?since=${lastUpdate.toISOString()}`
+                `http://10.0.2.2:5000/api/chat/${rideId}?since=${lastUpdate.toISOString()}`
             );
             
             if (response.data.length > 0) {
@@ -105,7 +105,7 @@ const ChatFeature = ({ route, navigation }) => {
             setMessages(prev => [...prev, { ...messageToSend, _id: tempId }]);
             setNewMessage('');
 
-            await axios.post(`http://192.168.236.117:5000/api/chat/${rideId}`, messageToSend);
+            await axios.post(`http://10.0.2.2:5000/api/chat/${rideId}`, messageToSend);
             
             // Trigger immediate update
             await fetchMessages();
