@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Alert, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import axios from 'axios';
 
@@ -12,12 +12,7 @@ const RideDetailsScreen = ({ route, navigation }) => {
     useEffect(() => {
         const fetchRideDetails = async () => {
             try {
-                console.log('Fetching ride details for ID:', rideId);
                 const response = await axios.get(`http://10.0.2.2:5000/api/rides/${rideId}`);
-
-                console.log('Ride details response:', response.data);
-                console.log("id:", response.data.data.rideId); // corrected
-
                 if (response.data && response.data.data && response.data.data.rideId) {
                     const rideData = {
                         rideId: response.data.data.rideId,
@@ -34,7 +29,6 @@ const RideDetailsScreen = ({ route, navigation }) => {
                     setError('Ride data is invalid');
                 }
             } catch (error) {
-                console.error('Error fetching ride details:', error);
                 setError('Failed to load ride details');
             } finally {
                 setLoading(false);
@@ -46,16 +40,16 @@ const RideDetailsScreen = ({ route, navigation }) => {
 
     if (loading) {
         return (
-            <View style={styles.loadingContainer}>
+            <View style={styles.centered}>
                 <ActivityIndicator size="large" color="#FFB22C" />
-                <Text>Loading ride details...</Text>
+                <Text style={styles.loadingText}>Loading ride details...</Text>
             </View>
         );
     }
 
     if (error) {
         return (
-            <View style={styles.container}>
+            <View style={styles.centered}>
                 <Text style={styles.errorText}>{error}</Text>
             </View>
         );
@@ -63,136 +57,159 @@ const RideDetailsScreen = ({ route, navigation }) => {
 
     if (!ride) {
         return (
-            <View style={styles.container}>
+            <View style={styles.centered}>
                 <Text>No ride data available</Text>
             </View>
         );
     }
+    const groupedPassengers = ride.passengers.reduce((acc, passenger) => {
+        if (acc[passenger.userId]) {
+            acc[passenger.userId].count += 1;
+        } else {
+            acc[passenger.userId] = { ...passenger, count: 1 };
+        }
+        return acc;
+    }, {});
+
+    const uniquePassengers = Object.values(groupedPassengers);
 
     return (
         <View style={styles.container}>
+            {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <Icon name="arrow-left" size={24} color="#000" />
+                    <Icon name="arrow-left" size={26} color="#000" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Ride Details</Text>
                 {isFromChat && (
                     <TouchableOpacity
-                        style={styles.chatButton}
                         onPress={() => navigation.navigate('ChatFeature', {
                             rideId,
-                            rideDetails: {
-                                start: ride.source,
-                                destination: ride.destination
-                            }
+                            rideDetails: { start: ride.source, destination: ride.destination }
                         })}
                     >
-                        <Icon name="message-text" size={24} color="#FFB22C" />
+                        <Icon name="message-text" size={26} color="#FFB22C" />
                     </TouchableOpacity>
                 )}
-
             </View>
 
-            <View style={styles.detailsContainer}>
-                <View style={styles.detailRow}>
-                    <Icon name="map-marker" size={20} color="#FFB22C" />
-                    <Text style={styles.detailText}>{ride.source} → {ride.destination}</Text>
-                </View>
-
-                <View style={styles.detailRow}>
-                    <Icon name="calendar" size={20} color="#FFB22C" />
-                    <Text style={styles.detailText}>
-                        {new Date(ride.date).toLocaleDateString()} at {ride.time}
-                    </Text>
-                </View>
-
-                <View style={styles.detailRow}>
-                    <Icon name="account-group" size={20} color="#FFB22C" />
-                    <Text style={styles.detailText}>
-                        {ride.passengers.length}/{ride.maxCapacity} seats filled
-                    </Text>
-                </View>
-
-                <View style={styles.detailRow}>
-                    <Icon name="cash" size={20} color="#FFB22C" />
-                    <Text style={styles.detailText}>₹{ride.totalFare} total fare</Text>
-                </View>
+            {/* Ride Details Section */}
+            <View style={styles.detailsSection}>
+                <DetailItem icon="map-marker" label="Route" text={`${ride.source} → ${ride.destination}`} />
+                <DetailItem icon="calendar" label="Schedule" text={`${new Date(ride.date).toLocaleDateString()} at ${ride.time}`} />
+                <DetailItem icon="account-group" label="Seats" text={`${ride.passengers.length}/${ride.maxCapacity} filled`} />
+                <DetailItem icon="cash" label="Fare" text={`₹${ride.totalFare}`} />
             </View>
 
-            <Text style={styles.passengersTitle}>Passengers:</Text>
+            {/* Passenger Section */}
+            <Text style={styles.passengersTitle}>Passengers</Text>
             <FlatList
-                data={ride.passengers}
-                keyExtractor={(item, index) => (item.userId ? item.userId.toString() : index.toString())}
-                renderItem={({ item, index }) => (
+                data={uniquePassengers}
+                keyExtractor={(item) => item.userId.toString()}
+                renderItem={({ item }) => (
                     <View style={styles.passengerItem}>
                         <Icon name="account" size={24} color="#555" />
-                        <Text style={styles.passengerName}>
-                            {item.name} {ride.passengers.length > 1 ? `(${index + 1})` : ''}
-                        </Text>
-
+                        <View style={{ marginLeft: 10, flex: 1 }}>
+                            <Text style={styles.passengerName}>{item.name}</Text>
+                            <Text style={styles.seatsBooked}>Seats booked: {item.count}</Text>
+                        </View>
+                        <TouchableOpacity
+                            onPress={() => Alert.alert('Passenger Email', item.email)}
+                        >
+                            <Icon name="email" size={24} color="#FFB22C" />
+                        </TouchableOpacity>
                     </View>
                 )}
                 ListEmptyComponent={
                     <Text style={styles.noPassengers}>No passengers yet</Text>
                 }
             />
-
         </View>
     );
 };
+
+const DetailItem = ({ icon, label, text }) => (
+    <View style={styles.detailRow}>
+        <Icon name={icon} size={22} color="#FFB22C" />
+        <View style={{ marginLeft: 10 }}>
+            <Text style={styles.detailLabel}>{label}</Text>
+            <Text style={styles.detailText}>{text}</Text>
+        </View>
+    </View>
+);
+
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#FFF',
     },
-    loadingContainer: {
+    centered: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
     },
+    loadingText: {
+        marginTop: 10,
+        fontSize: 16,
+        color: '#888',
+    },
     errorText: {
         color: 'red',
-        textAlign: 'center',
+        fontSize: 16,
         marginTop: 20,
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: 15,
+        paddingHorizontal: 20,
+        paddingVertical: 15,
         borderBottomWidth: 1,
         borderBottomColor: '#EEE',
     },
+    seatsBooked: {
+        fontSize: 14,
+        color: '#666',
+        marginTop: 2,
+    },
+
     headerTitle: {
-        fontSize: 18,
+        fontSize: 20,
         fontWeight: 'bold',
+        color: '#000',
     },
-    detailsContainer: {
-        padding: 15,
-        borderBottomWidth: 1,
-        borderBottomColor: '#EEE',
+    detailsSection: {
+        marginTop: 20,
+        paddingHorizontal: 20,
     },
     detailRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 10,
+        marginBottom: 20,
+    },
+    detailLabel: {
+        fontSize: 14,
+        color: '#888',
     },
     detailText: {
-        marginLeft: 10,
         fontSize: 16,
+        fontWeight: '500',
+        color: '#000',
     },
     passengersTitle: {
-        padding: 15,
-        fontSize: 16,
+        marginTop: 30,
+        marginBottom: 10,
+        paddingHorizontal: 20,
+        fontSize: 18,
         fontWeight: 'bold',
-        borderBottomWidth: 1,
-        borderBottomColor: '#EEE',
+        color: '#000',
     },
     passengerItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 15,
+        paddingHorizontal: 20,
+        paddingVertical: 12,
         borderBottomWidth: 1,
         borderBottomColor: '#EEE',
     },
@@ -201,9 +218,9 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     noPassengers: {
-        padding: 15,
-        color: '#888',
+        padding: 20,
         textAlign: 'center',
+        color: '#888',
     },
 });
 
