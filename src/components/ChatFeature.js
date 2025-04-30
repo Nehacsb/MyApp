@@ -7,10 +7,10 @@ import {
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
-import {LinearGradient} from 'react-native-linear-gradient';
+import { LinearGradient } from 'react-native-linear-gradient';
 
 // Background image - you'll need to add this to your assets folder
-// const backgroundImage = require('../../assets/Wallpaper.jpg');
+const backgroundImage = require('../../assets/Wallpaper.jpg');
 
 const ChatFeature = ({ route, navigation }) => {
     const { rideId, rideDetails } = route.params;
@@ -36,7 +36,7 @@ const ChatFeature = ({ route, navigation }) => {
     const handleSendMessage = async () => {
         if (!newMessage.trim()) return;
         const fullName = `${user.firstName} ${user.lastName || ''}`.trim();
-    
+
         const messageToSend = {
             rideId,
             content: newMessage,
@@ -44,9 +44,9 @@ const ChatFeature = ({ route, navigation }) => {
             senderId: user._id,
             senderName: fullName,
         };
-    
+
         setNewMessage('');
-    
+
         try {
             await axios.post(`https://myapp-hu0i.onrender.com/api/chat/${rideId}`, messageToSend);
             // don't manually add message now
@@ -56,15 +56,15 @@ const ChatFeature = ({ route, navigation }) => {
             Alert.alert('Error', 'Failed to send message');
         }
     };
-    
+
     const fetchMessages = async () => {
         try {
             const response = await axios.get(`https://myapp-hu0i.onrender.com/api/chat/${rideId}`);
-    
+
             setMessages(prevMessages => {
                 const existingIds = new Set(prevMessages.map(msg => msg._id));
                 const newUniqueMessages = response.data.filter(msg => !existingIds.has(msg._id));
-    
+
                 if (newUniqueMessages.length > 0) {
                     if (!isAtBottom) {
                         setHasNewMessage(true); // User is reading old messages -> Show popup
@@ -73,7 +73,7 @@ const ChatFeature = ({ route, navigation }) => {
                 }
                 return prevMessages;
             });
-    
+
             setLastUpdate(new Date());
         } catch (error) {
             console.error('Error fetching messages:', error);
@@ -81,21 +81,21 @@ const ChatFeature = ({ route, navigation }) => {
             setLoading(false);
         }
     };
-    
+
     const handleScroll = (event) => {
         const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
         const paddingToBottom = 20; // 20px tolerance
         const isBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToBottom;
-    
+
         if (isBottom !== isAtBottom) {
             setIsAtBottom(isBottom);
         }
-        
+
         if (isBottom) {
             setHasNewMessage(false); // hide popup if at bottom
         }
     };
-    
+
     const showRideDetails = () => {
         navigation.navigate('RideDetails', {
             rideId,
@@ -130,7 +130,7 @@ const ChatFeature = ({ route, navigation }) => {
                         </Text>
                     </View>
                 )}
-                
+
                 <View style={[
                     styles.messageContainer,
                     isCurrentUser ? styles.currentUserMessage : styles.otherUserMessage
@@ -151,7 +151,7 @@ const ChatFeature = ({ route, navigation }) => {
                         {messageTime}
                     </Text>
                 </View>
-                
+
                 {isCurrentUser && (
                     <View style={styles.avatarContainer}>
                         <Text style={styles.avatarText}>
@@ -163,26 +163,32 @@ const ChatFeature = ({ route, navigation }) => {
         );
     };
 
-    return (            
+    return (
+        <ImageBackground
+            source={backgroundImage}
+            style={styles.backgroundImage}
+            resizeMode="cover"
+        >
+            <StatusBar backgroundColor="#50ABE7" barStyle="light-content" />
             <View style={styles.container}>
                 {/* Custom Header */}
-                <LinearGradient 
+                <LinearGradient
                     colors={['#50ABE7', '#6cbde9']}
-                    start={{x: 0, y: 0}}
-                    end={{x: 1, y: 0}}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
                     style={styles.header}
                 >
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                         <Icon name="arrow-left" size={24} color="#FFF" />
                     </TouchableOpacity>
-                    
+
                     <TouchableOpacity style={styles.headerTitleContainer} onPress={showRideDetails}>
                         <Icon name="map-marker-path" size={20} color="#FFF" style={styles.headerIcon} />
                         <Text style={styles.headerTitle}>
                             {rideDetails.start} → {rideDetails.destination}
                         </Text>
                     </TouchableOpacity>
-                    
+
                     <TouchableOpacity onPress={showRideDetails} style={styles.infoButton}>
                         <Icon name="information-outline" size={24} color="#FFF" />
                     </TouchableOpacity>
@@ -207,7 +213,7 @@ const ChatFeature = ({ route, navigation }) => {
                                 }
                             }}
                         />
-                        
+
                         {hasNewMessage && (
                             <TouchableOpacity
                                 onPress={() => {
@@ -248,6 +254,7 @@ const ChatFeature = ({ route, navigation }) => {
                     </>
                 )}
             </View>
+        </ImageBackground>
     );
 };
 
@@ -333,8 +340,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: 14,
         paddingVertical: 10,
         borderRadius: 18,
-        borderWidth: 1,
-        borderColor: '#E0E0E0',
+        // borderWidth: 1,
+        // borderColor: '#E0E0E0',
     },
     currentUserMessage: {
         backgroundColor: '#87ceeb',
