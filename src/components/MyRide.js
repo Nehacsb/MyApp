@@ -274,7 +274,7 @@ const MyRides = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Icon name="arrow-left" size={24} color={COLORS.primary} />
+          <Icon name="arrow-left" size={24} color='#000' />
         </TouchableOpacity>
         <Text style={styles.title}>My Rides</Text>
         <View style={{ width: 24 }} /> {/* For balance */}

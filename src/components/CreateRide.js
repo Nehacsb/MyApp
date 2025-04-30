@@ -455,6 +455,7 @@ const CreateRide = ({ navigation }) => {
                         <TextInput
                           style={styles.vehicleInfoInput}
                           placeholder="Contact Number"
+                          placeholderTextColor={"#888"}
                           value={contactNumber}
                           onChangeText={setContactNumber}
                           keyboardType="phone-pad"
@@ -464,6 +465,7 @@ const CreateRide = ({ navigation }) => {
                         <TextInput
                           ref={numberPlateInput}
                           style={styles.vehicleInfoInput}
+                          placeholderTextColor={"#888"}
                           placeholder="Number Plate"
                           value={numberPlate}
                           onChangeText={setNumberPlate}
@@ -784,6 +786,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     maxHeight: '80%',
     padding: 20,
+    marginTop: 100,
   },
   modalHeader: {
     flexDirection: 'row',
