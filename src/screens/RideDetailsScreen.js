@@ -78,7 +78,7 @@ const RideDetailsScreen = ({ route, navigation }) => {
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <Icon name="arrow-left" size={26} color="#000" />
+                    <Icon name="arrow-left" size={26} color="#50ABE7" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Ride Details</Text>
                 {isFromChat && (
@@ -88,7 +88,7 @@ const RideDetailsScreen = ({ route, navigation }) => {
                             rideDetails: { start: ride.source, destination: ride.destination }
                         })}
                     >
-                        <Icon name="message-text" size={26} color="#FFB22C" />
+                        <Icon name="message-text" size={26} color="#87ceeb" />
                     </TouchableOpacity>
                 )}
             </View>
@@ -116,7 +116,7 @@ const RideDetailsScreen = ({ route, navigation }) => {
                         <TouchableOpacity
                             onPress={() => Alert.alert('Passenger Email', item.email)}
                         >
-                            <Icon name="email" size={24} color="#FFB22C" />
+                            <Icon name="email" size={24} color="#87ceeb" />
                         </TouchableOpacity>
                     </View>
                 )}
@@ -130,7 +130,7 @@ const RideDetailsScreen = ({ route, navigation }) => {
 
 const DetailItem = ({ icon, label, text }) => (
     <View style={styles.detailRow}>
-        <Icon name={icon} size={22} color="#FFB22C" />
+        <Icon name={icon} size={22} color="#6cbde9" />
         <View style={{ marginLeft: 10 }}>
             <Text style={styles.detailLabel}>{label}</Text>
             <Text style={styles.detailText}>{text}</Text>
@@ -139,20 +139,22 @@ const DetailItem = ({ icon, label, text }) => (
 );
 
 
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFF',
+        backgroundColor: 'white',
     },
     centered: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: 'white',
     },
     loadingText: {
         marginTop: 10,
         fontSize: 16,
-        color: '#888',
+        color: '#50ABE7',
     },
     errorText: {
         color: 'red',
@@ -165,15 +167,15 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 20,
         paddingVertical: 15,
+        backgroundColor: 'white',
         borderBottomWidth: 1,
-        borderBottomColor: '#EEE',
+        borderBottomColor: '#000',
+        elevation: 3,
+        shadowColor: '#6cbde9',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
     },
-    seatsBooked: {
-        fontSize: 14,
-        color: '#666',
-        marginTop: 2,
-    },
-
     headerTitle: {
         fontSize: 20,
         fontWeight: 'bold',
@@ -181,25 +183,35 @@ const styles = StyleSheet.create({
     },
     detailsSection: {
         marginTop: 20,
-        paddingHorizontal: 20,
+        padding: 18,
+        marginHorizontal: 15,
+        backgroundColor: '#FFFFFF',
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: '#000',
+        shadowColor: '#50ABE7',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
+        elevation: 2,
     },
     detailRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 20,
+        marginBottom: 18,
     },
     detailLabel: {
-        fontSize: 14,
-        color: '#888',
+        fontSize: 13,
+        color: '#6cbde9',
     },
     detailText: {
         fontSize: 16,
         fontWeight: '500',
-        color: '#000',
+        color: '#333',
     },
     passengersTitle: {
         marginTop: 30,
-        marginBottom: 10,
+        marginBottom: 12,
         paddingHorizontal: 20,
         fontSize: 18,
         fontWeight: 'bold',
@@ -208,20 +220,42 @@ const styles = StyleSheet.create({
     passengerItem: {
         flexDirection: 'row',
         alignItems: 'center',
+        backgroundColor: 'white',
+        paddingVertical: 14,
         paddingHorizontal: 20,
-        paddingVertical: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: '#EEE',
+        marginHorizontal: 15,
+        marginBottom: 10,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#000',
+        elevation: 2,
+        shadowColor: '#87ceeb',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
     },
     passengerName: {
-        marginLeft: 10,
         fontSize: 16,
+        fontWeight: '500',
+        color: '#333',
+    },
+    seatsBooked: {
+        fontSize: 14,
+        color: '#6cbde9',
+        marginTop: 2,
     },
     noPassengers: {
         padding: 20,
         textAlign: 'center',
-        color: '#888',
+        color: '#777',
+        backgroundColor: '#FFFFFF',
+        marginHorizontal: 15,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: '#000',
     },
 });
+
+
 
 export default RideDetailsScreen;

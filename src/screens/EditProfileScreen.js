@@ -139,8 +139,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   selectedGender: {
-    backgroundColor: '#FFA500',
-    borderColor: '#FFA500',
+    backgroundColor: '#6cbde9',
+    borderColor: '#eee',
   },
   genderText: {
     color: '#555',
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   saveButton: {
-    backgroundColor: '#FFA500',
+    backgroundColor: '#6cbde9',
     padding: 14,
     borderRadius: 8,
     alignItems: 'center',

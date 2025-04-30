@@ -102,7 +102,7 @@ router.post("/login", async (req, res) => {
     
     console.log("User found:", user); // Debugging
     if (!user) {
-      return res.status(400).json({ message: "Invalklllid email or password" });
+      return res.status(400).json({ message: "User not found" });
     }
     console.log("password:",password);
     const isMatch = await bcrypt.compare(password, user.password);

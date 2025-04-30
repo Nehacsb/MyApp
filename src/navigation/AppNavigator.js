@@ -22,7 +22,7 @@ import EditProfileScreen from "../screens/EditProfileScreen";
 import RideDetailsScreen from "../screens/RideDetailsScreen"; 
 
 import ProfileSidebar from "../components/ProfileSidebar";
-
+import AddCab from "../components/AddCab";
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
@@ -82,6 +82,7 @@ const AppNavigator = () => {
               <Stack.Screen name="ProfileSidebar" component={ProfileSidebar} />
               <Stack.Screen name="EditProfile" component={EditProfileScreen} />
               <Stack.Screen name="RideDetails" component={RideDetailsScreen} />
+              <Stack.Screen name="AddCab" component={AddCab} />
             </>
           )
         ) : (

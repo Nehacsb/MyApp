@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Platform,PermissionsAndroid,TextInput, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, Alert, SafeAreaView, Button } from "react-native";
+import { View, Text, Platform, PermissionsAndroid, TextInput, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, Alert, SafeAreaView } from "react-native";
 import { pick, types } from '@react-native-documents/picker';
 import RNFS from 'react-native-fs';
 import XLSX from 'xlsx';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import LinearGradient from 'react-native-linear-gradient';
 
 const DomainManagement = () => {
   const navigation = useNavigation(); 
@@ -27,21 +28,22 @@ const DomainManagement = () => {
 
   // Fetch authorized domains on mount
   useEffect(() => {
-    const fetchDomains = async () => {
-      setIsLoading(true);
-      try {
-        const response = await fetch("http://10.0.2.2:5000/api/admin/authorized_domain");
-        const data = await handleResponse(response);
-        setAuthorizedDomains(Array.isArray(data) ? data : []);
-      } catch (error) {
-        console.error("Error fetching domains:", error);
-        Alert.alert("Error", error.message);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchDomains();
   }, []);
+
+  const fetchDomains = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch("http://10.0.2.2:5000/api/admin/authorized_domain");
+      const data = await handleResponse(response);
+      setAuthorizedDomains(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Error fetching domains:", error);
+      Alert.alert("Error", error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Add domain
   const addDomain = async () => {
@@ -213,43 +215,63 @@ const DomainManagement = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-                      <Icon name="arrow-back" size={24} color="#000" />
-                  </TouchableOpacity>
-      <Text style={styles.title}>Domain Management</Text>
-      <View style={styles.inputRow}>
-        <TextInput
-          placeholder="Add authorized domain"
-          style={styles.input}
-          value={domain}
-          onChangeText={setDomain}
-        />
-        <TouchableOpacity style={styles.addButton} onPress={addDomain}>
-          <Text style={styles.addButtonText}>Add</Text>
-        </TouchableOpacity>
-      </View>
+      {/* Header with gradient */}
+     
+        
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Icon name="arrow-back" size={24} color="#6cbde9" />
+          </TouchableOpacity>
+          <Text style={styles.title}>Email Management</Text>
+        
 
-      <Button title="Upload XLSX" onPress={uploadXLSX} />
-
-      {isLoading ? (
-        <ActivityIndicator size="small" color="#4F46E5" />
-      ) : (
-        <View style={styles.listContainer}>
-          <Text style={styles.listHeader}>Authorized Domains</Text>
-          <FlatList
-            data={authorizedDomains}
-            keyExtractor={(item) => item}
-            renderItem={({ item }) => (
-              <View style={styles.listItem}>
-                <Text style={styles.listItemText}>{item}</Text>
-                <TouchableOpacity onPress={() => removeDomain(item)}>
-                  <Text style={styles.deleteText}>Remove</Text>
-                </TouchableOpacity>
-              </View>
-            )}
+      <View style={styles.content}>
+        <View style={styles.inputRow}>
+          <TextInput
+            placeholder="Add authorized Emails"
+            style={styles.input}
+            value={domain}
+            onChangeText={setDomain}
+            placeholderTextColor="#9e9e9e"
           />
+          <TouchableOpacity style={styles.addButton} onPress={addDomain}>
+            <Text style={styles.addButtonText}>Add</Text>
+          </TouchableOpacity>
         </View>
-      )}
+
+        <TouchableOpacity style={styles.uploadButton} onPress={uploadXLSX}>
+          <Icon name="upload-file" size={20} color="#FFFFFF" style={styles.buttonIcon} />
+          <Text style={styles.uploadButtonText}>Upload XLSX</Text>
+        </TouchableOpacity>
+
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#50ABE7" />
+          </View>
+        ) : (
+          <View style={styles.listContainer}>
+            <Text style={styles.listHeader}>Authorized Emails</Text>
+            <FlatList
+              data={authorizedDomains}
+              keyExtractor={(item, index) => item + index}
+              renderItem={({ item }) => (
+                <View style={styles.listItem}>
+                  <Text style={styles.listItemText}>{item}</Text>
+                  <TouchableOpacity 
+                    style={styles.deleteButton} 
+                    onPress={() => removeDomain(item)}
+                  >
+                    <Text style={styles.deleteText}>Remove</Text>
+
+                  </TouchableOpacity>
+                </View>
+              )}
+              ListEmptyComponent={
+                <Text style={styles.emptyText}>No domains authorized yet.</Text>
+              }
+            />
+          </View>
+        )}
+      </View>
     </SafeAreaView>
   );
 };
@@ -257,15 +279,31 @@ const DomainManagement = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 24,
+    padding:24,
     backgroundColor: "#FFFFFF",
   },
+  
   title: {
-    fontSize: 24,
-    fontWeight: "600",
-    color: "#0F172A",
+    fontSize: 26,
+    fontWeight: "700",
+    color: "#50ABE7",
     marginBottom: 24,
     textAlign: "center",
+  },
+  content: {
+    flex: 1,
+    
+    paddingTop: 20,
+  },
+  backButton: {
+    marginBottom: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    alignSelf: "flex-start",
+    backgroundColor: "#F3F4F6",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#e2eef8",
   },
   inputRow: {
     flexDirection: "row",
@@ -284,40 +322,68 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   addButton: {
-    backgroundColor: "#111827",
+    backgroundColor: "#50ABE7",
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 10,
     justifyContent: "center",
-    // Shadow styling
-    shadowColor: "#000",
+    elevation: 2,
+    shadowColor: "#50ABE7",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOpacity: 0.3,
+    shadowRadius: 2,
   },
   addButtonText: {
     color: "#FFFFFF",
     fontWeight: "500",
     fontSize: 15,
   },
+  uploadButton: {
+    backgroundColor: "#50ABE7",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    marginBottom: 20,
+    elevation: 2,
+    shadowColor: "#50ABE7",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 2,
+  },
+  buttonIcon: {
+    marginRight: 8,
+  },
+  uploadButtonText: {
+    color: "#FFFFFF",
+    fontWeight: "500",
+    fontSize: 15,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   listContainer: {
+    flex: 1,
     backgroundColor: "#F9FAFB",
     borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+    padding: 16,
     borderWidth: 1,
     borderColor: "#E5E7EB",
   },
   listHeader: {
-    color: "#0F172A",
+    color: "#50ABE7",
     fontSize: 18,
     fontWeight: "600",
-    marginBottom: 8,
+    marginBottom: 12,
   },
   listItem: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: "#E5E7EB",
@@ -325,20 +391,24 @@ const styles = StyleSheet.create({
   listItemText: {
     fontSize: 15,
     color: "#1F2937",
+    flex: 1,
+  },
+  deleteButton: {
+    backgroundColor: "rgba(220, 38, 38, 0.1)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
   },
   deleteText: {
     color: "#DC2626",
-    fontWeight: "500",
+    fontWeight: "600",
     fontSize: 14,
   },
-  backButton: {
-    marginBottom: 16,
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    alignSelf: "flex-start",
-    backgroundColor: "#E5E7EB",
-    borderRadius: 8,
-  },
+  emptyText: {
+    textAlign: 'center',
+    color: '#9e9e9e',
+    padding: 20,
+  }
 });
 
 export default DomainManagement;

@@ -12,6 +12,12 @@ const rideSchema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // Reference to the user who created the ride
   passengers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Array of passengers (users who joined the ride)
   createdAt: { type: Date, default: Date.now }, // Timestamp when the ride was created
+
+  // New fields for additional ride details
+  vehicleType: { type: String },
+  contactNumber: { type: String },
+  numberPlate: { type: String},
+  otherInfo: { type: String}
 });
 
 module.exports = mongoose.model('Ride', rideSchema);

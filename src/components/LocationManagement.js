@@ -12,14 +12,13 @@ import {
   Platform,
   PermissionsAndroid,
   Linking,
-  Button,
 } from "react-native";
 import { pick, types } from '@react-native-documents/picker';
 import RNFS from 'react-native-fs';
-import Papa from 'papaparse';
 import XLSX from 'xlsx';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import LinearGradient from 'react-native-linear-gradient';
 
 const LocationManagement = () => {
   const navigation = useNavigation(); 
@@ -140,8 +139,6 @@ const LocationManagement = () => {
     return true;
   };
   
-  
-
   const uploadCSV = async () => {
     const hasPermission = await requestStoragePermission();
     if (!hasPermission) return;
@@ -199,30 +196,47 @@ const LocationManagement = () => {
     }
   };
   
-
   return (
     <SafeAreaView style={styles.container}>
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-                            <Icon name="arrow-back" size={24} color="#000" />
-                        </TouchableOpacity>
+        <Icon name="arrow-back" size={24} color="#6cbde9" />
+      </TouchableOpacity>
+      
       <Text style={styles.title}>Location Management</Text>
 
       <View style={styles.inputRow}>
         <TextInput
           placeholder="Add location"
+          placeholderTextColor="#a8c7df"
           style={styles.input}
           value={location}
           onChangeText={setLocation}
         />
         <TouchableOpacity style={styles.addButton} onPress={addLocation}>
-          <Text style={styles.addButtonText}>Add</Text>
+          <LinearGradient 
+            colors={['#87ceeb', '#50ABE7']} 
+            start={{x: 0, y: 0}} 
+            end={{x: 1, y: 0}}
+            style={styles.addButtonGradient}
+          >
+            <Text style={styles.addButtonText}>Add</Text>
+          </LinearGradient>
         </TouchableOpacity>
       </View>
 
-      <Button title="Upload CSV" onPress={uploadCSV} />
+      <TouchableOpacity style={styles.uploadButton} onPress={uploadCSV}>
+        <LinearGradient 
+          colors={['#87ceeb', '#50ABE7']} 
+          start={{x: 0, y: 0}} 
+          end={{x: 1, y: 0}}
+          style={styles.uploadButtonGradient}
+        >
+          <Text style={styles.uploadButtonText}>Upload XLSX</Text>
+        </LinearGradient>
+      </TouchableOpacity>
 
       {isLoading ? (
-        <ActivityIndicator size="small" color="#4F46E5" />
+        <ActivityIndicator size="large" color="#6cbde9" style={styles.loader} />
       ) : (
         <View style={styles.listContainer}>
           <Text style={styles.listHeader}>Locations</Text>
@@ -232,7 +246,10 @@ const LocationManagement = () => {
             renderItem={({ item }) => (
               <View style={styles.listItem}>
                 <Text style={styles.listItemText}>{item.name || item}</Text>
-                <TouchableOpacity onPress={() => removeLocation(item)}>
+                <TouchableOpacity 
+                  style={styles.deleteButton} 
+                  onPress={() => removeLocation(item)}
+                >
                   <Text style={styles.deleteText}>Remove</Text>
                 </TouchableOpacity>
               </View>
@@ -251,9 +268,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
   title: {
-    fontSize: 24,
-    fontWeight: "600",
-    color: "#0F172A",
+    fontSize: 26,
+    fontWeight: "700",
+    color: "#50ABE7",
     marginBottom: 24,
     textAlign: "center",
   },
@@ -266,58 +283,92 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 10,
-    backgroundColor: "#F3F4F6",
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
+    backgroundColor: "#F9FAFB",
+    borderWidth: 1.5,
+    borderColor: "#6cbde9",
     fontSize: 16,
-    color: "#111827",
+    color: "#2c5d7c",
     marginRight: 10,
   },
   addButton: {
-    backgroundColor: "#111827",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
     borderRadius: 10,
-    justifyContent: "center",
+    overflow: 'hidden',
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
   },
+  addButtonGradient: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    justifyContent: "center",
+  },
   addButtonText: {
     color: "#FFFFFF",
-    fontWeight: "500",
+    fontWeight: "600",
     fontSize: 15,
   },
+  uploadButton: {
+    borderRadius: 10,
+    overflow: 'hidden',
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  uploadButtonGradient: {
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  uploadButtonText: {
+    color: "#FFFFFF",
+    fontWeight: "600",
+    fontSize: 16,
+  },
   listContainer: {
-    backgroundColor: "#F9FAFB",
+    backgroundColor: "#FFFFFF",
     borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
+    paddingVertical: 15,
+    paddingHorizontal: 16,
+    borderWidth: 1.5,
+    borderColor: "#6cbde9",
+    shadowColor: "#87ceeb",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 6,
   },
   listHeader: {
-    color: "#0F172A",
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 8,
+    color: "#50ABE7",
+    fontSize: 20,
+    fontWeight: "700",
+    marginBottom: 12,
   },
   listItem: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingVertical: 12,
+    alignItems: "center",
+    paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
+    borderBottomColor: "rgba(108, 189, 233, 0.3)",
   },
   listItemText: {
-    fontSize: 15,
-    color: "#1F2937",
+    fontSize: 16,
+    color: "#2c5d7c",
+    fontWeight: "500",
+  },
+  deleteButton: {
+    backgroundColor: "rgba(220, 38, 38, 0.1)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
   },
   deleteText: {
     color: "#DC2626",
-    fontWeight: "500",
+    fontWeight: "600",
     fontSize: 14,
   },
   backButton: {
@@ -325,8 +376,13 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 10,
     alignSelf: "flex-start",
-    backgroundColor: "#E5E7EB",
+    backgroundColor: "#F3F4F6",
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#e2eef8",
+  },
+  loader: {
+    marginTop: 30,
   },
 });
 

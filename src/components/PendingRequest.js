@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
+import { LinearGradient } from 'react-native-linear-gradient';
 
 const PendingRequests = ({ navigation }) => {
   const { user } = useContext(AuthContext);
@@ -93,7 +94,7 @@ const PendingRequests = ({ navigation }) => {
   };
 
   const renderRequestItem = ({ item }) => {
-    const seats = item.seats || 1; // Default to 1 if seats field doesn't exist
+    const seats = item.seats || 1;
     
     return (
       <View style={styles.card}>
@@ -108,22 +109,22 @@ const PendingRequests = ({ navigation }) => {
         </View>
         
         <View style={styles.dateTimeContainer}>
-          <MaterialIcons name="calendar-today" size={16} color="#A0AEC0" />
+          <MaterialIcons name="calendar-today" size={16} color="#50ABE7" />
           <Text style={styles.dateTimeText}>
             {new Date(item.ride.date).toLocaleDateString()}
           </Text>
-          <MaterialIcons name="access-time" size={16} color="#A0AEC0" style={styles.timeIcon} />
+          <MaterialIcons name="access-time" size={16} color="#50ABE7" style={styles.timeIcon} />
           <Text style={styles.dateTimeText}>{item.ride.time}</Text>
         </View>
 
         <View style={styles.requesterDetails}>
-          <MaterialIcons name="person" size={16} color="#FFB22C" />
+          <MaterialIcons name="person" size={16} color="#6cbde9" />
           <Text style={styles.requesterName}>
             {item.requester.firstName} {item.requester.lastName}
           </Text>
         </View>
         <View style={styles.requesterDetails}>
-          <MaterialIcons name="email" size={16} color="#FFB22C" />
+          <MaterialIcons name="email" size={16} color="#6cbde9" />
           <Text style={styles.requesterEmail}>{item.requester.email}</Text>
         </View>
 
@@ -153,10 +154,9 @@ const PendingRequests = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-    
       <View style={styles.header}>
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#FFB22C" />
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <MaterialIcons name="arrow-back" size={24} color="#50ABE7" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Incoming Requests</Text>
       </View>
@@ -187,7 +187,7 @@ const PendingRequests = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#FFFFFF',
     paddingHorizontal: 16,
   },
   header: {
@@ -195,6 +195,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 24,
     paddingBottom: 16,
+    backgroundColor: '#FFFFFF', // Explicit white background
   },
   backButton: {
     marginRight: 12,
@@ -202,7 +203,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#000', // Blue color for the title
   },
   list: {
     paddingBottom: 32,
@@ -214,9 +215,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 3,
+    shadowOpacity: 0.03,
+    shadowRadius: 30,
+    elevation: 1,
+    borderWidth: 1,
+    borderColor: '#000', // Very light blue border
   },
   routeHeader: {
     flexDirection: 'row',
@@ -227,13 +230,12 @@ const styles = StyleSheet.create({
   routeText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#111827',
-    flex: 1,
+    color: '#111827', // Dark gray for text
   },
   seatsBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFB22C',
+    backgroundColor: '#6cbde9', // Blue badge
     borderRadius: 12,
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -252,7 +254,7 @@ const styles = StyleSheet.create({
   },
   dateTimeText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#6B7280', // Medium gray
     marginLeft: 6,
   },
   timeIcon: {
@@ -265,12 +267,12 @@ const styles = StyleSheet.create({
   },
   requesterName: {
     fontSize: 15,
-    color: '#1F2937',
+    color: '#1F2937', // Dark gray
     marginLeft: 8,
   },
   requesterEmail: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#6B7280', // Medium gray
     marginLeft: 8,
   },
   actions: {
@@ -288,15 +290,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   acceptButton: {
-    borderColor: '#10B981',
+    borderColor: '#50ABE7', // Blue border
   },
   rejectButton: {
-    borderColor: '#EF4444',
+    borderColor: '#EF4444', // Red border
   },
   actionButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#111827',
+    color: '#111827', // Dark gray
   },
   loadingContainer: {
     flex: 1,

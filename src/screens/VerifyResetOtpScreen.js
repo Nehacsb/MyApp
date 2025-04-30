@@ -1,5 +1,5 @@
 import React, { useState, useContext } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, ScrollView, Image } from "react-native";
 import { AuthContext } from "../context/AuthContext";
 
 const VerifyResetOtpScreen = ({ route, navigation }) => {
@@ -25,82 +25,143 @@ const VerifyResetOtpScreen = ({ route, navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Verify OTP</Text>
-      <Text style={styles.subtitle}>Enter the 6-digit OTP sent to {email}</Text>
-      
-      <TextInput
-        placeholder="OTP"
-        placeholderTextColor="#aaa"
-        value={otp}
-        onChangeText={setOtp}
-        style={styles.input}
-        keyboardType="number-pad"
-        maxLength={6}
-      />
-      
-      <TouchableOpacity style={styles.button} onPress={handleVerifyOtp} disabled={isSubmitting}>
-        {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Verify OTP</Text>}
-      </TouchableOpacity>
-      
-      <TouchableOpacity onPress={() => navigation.goBack()}>
-        <Text style={styles.link}>Back</Text>
-      </TouchableOpacity>
-    </View>
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <View style={styles.container}>
+        {/* Lock Image */}
+        <View style={styles.imageContainer}>
+          <Image 
+            source={require('../../assets/location.jpeg')} 
+            style={styles.image}
+            resizeMode="contain"
+          />
+        </View>
+
+        <View style={styles.formContainer}>
+          <Text style={styles.title}>Verify OTP</Text>
+          <Text style={styles.subtitle}>Enter the 6-digit code sent to {email}</Text>
+          
+          <TextInput
+            style={styles.input}
+            placeholder="Enter 6-digit OTP"
+            placeholderTextColor="#9e9e9e"
+            value={otp}
+            onChangeText={setOtp}
+            keyboardType="number-pad"
+            maxLength={6}
+          />
+          
+          <TouchableOpacity 
+            style={styles.button} 
+            onPress={handleVerifyOtp}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 
+              <ActivityIndicator color="#FFFFFF" /> : 
+              <Text style={styles.buttonText}>Verify OTP</Text>
+            }
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.secondaryButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={styles.secondaryButtonText}>Back</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </ScrollView>
   );
 };
 
-// Use the same styles as ForgotPasswordScreen or customize as needed
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flexGrow: 1,
+    backgroundColor: '#ffffff',
+    paddingTop: 50,
+  },
   container: {
     flex: 1,
-    justifyContent: "center",
-    padding: 24,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
+  },
+  imageContainer: {
+    
+    width: '100%',
+    height: 220,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    marginBottom: 19,
+  },
+  image: {
+    width: 300,
+    height: 250,
+    marginBottom: -5,
+  },
+  formContainer: {
+    backgroundColor: '#f5f5f5',
+    borderRadius: 25,
+    paddingHorizontal: 25,
+    paddingVertical: 30,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
+    marginHorizontal: 20,
+    paddingTop: 40,
+    marginTop: -25,
   },
   title: {
-    fontSize: 28,
-    fontWeight: "600",
-    color: "#111827",
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#424242",
     textAlign: "center",
-    marginBottom: 6,
+    marginBottom: 8,
   },
   subtitle: {
-    fontSize: 16,
-    color: "#6B7280",
+    fontSize: 15,
+    color: "#757575",
     textAlign: "center",
-    marginBottom: 24,
+    marginBottom: 25,
+    lineHeight: 22,
   },
   input: {
     width: "100%",
     paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-    backgroundColor: "#F9FAFB",
+    paddingHorizontal: 18,
+    borderRadius: 12,
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#E5E7EB",
-    color: "#111827",
+    borderColor: "#e0e0e0",
+    color: "#424242",
     fontSize: 16,
-    marginBottom: 16,
+    marginBottom: 18,
   },
   button: {
-    backgroundColor: "#111827",
-    paddingVertical: 14,
-    borderRadius: 10,
+    backgroundColor: "#50ABE7",
+    paddingVertical: 15,
+    borderRadius: 12,
     alignItems: "center",
     width: "100%",
-    marginTop: 8,
+    marginTop: 10,
+    shadowColor: "#ffd300",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
   },
   buttonText: {
     color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: "600",
   },
-  link: {
-    marginTop: 20,
-    color: "#2563EB",
+  secondaryButton: {
+    marginTop: 18,
+    alignItems: "center",
+  },
+  secondaryButtonText: {
+    color: "#757575",
     fontSize: 15,
-    textAlign: "center",
     fontWeight: "500",
   },
 });

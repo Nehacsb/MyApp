@@ -7,6 +7,28 @@ import { useNavigation } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
+// Color Theme Constants
+const COLORS = {
+  primary: '#50ABE7',        // Primary blue color
+  secondary: '#6CBDE9',      // Secondary blue color
+  accent: '#87CEEB',         // Light blue accent
+  background: '#F5F7FA',     // Light background
+  card: '#FFFFFF',           // Card background
+  text: {
+    primary: '#333333',      // Primary text
+    secondary: '#666666',    // Secondary text 
+    placeholder: '#999999',  // Placeholder text
+    inverse: '#FFFFFF',      // Text on dark backgrounds
+  },
+  border: '#E5EBF0',         // Border color
+  status: {
+    success: '#4CAF50',      // Green for success status
+    warning: '#FFA726',      // Orange for pending status
+    error: '#F44336',        // Red for rejected status
+    default: '#A0AEC0',      // Gray for default status
+  },
+};
+
 const MyRides = () => {
   const navigation = useNavigation();
   const [selectedTab, setSelectedTab] = useState('created');
@@ -15,83 +37,86 @@ const MyRides = () => {
   const { user } = useContext(AuthContext);
 
   useEffect(() => {
-    const fetchRides = async () => {
-      try {
-        if (!user?.email) {
-          Alert.alert('Error', 'User email not available');
-          return;
-        }
-    
-        const [createdResponse, requestedResponse] = await Promise.all([
-          axios.get('http://10.0.2.2:5000/api/rides', {
-            params: { email: user.email },
-            headers: { 'Content-Type': 'application/json' }
-          }),
-          axios.get('http://10.0.2.2:5000/api/request/requests', {
-            params: { userEmail: user.email },
-            headers: { 'Content-Type': 'application/json' }
-          })
-        ]);
-    
-        const formatDate = (dateStr) => dateStr ? new Date(dateStr).toLocaleDateString('en-GB') : 'N/A';
-        const formatTime = (timeStr) => {
-          if (!timeStr) return 'N/A';
-          const [hours, minutes] = timeStr.split(':');
-          const hour = parseInt(hours);
-          const ampm = hour >= 12 ? 'PM' : 'AM';
-          const hour12 = hour % 12 || 12;
-          return `${hour12}:${minutes} ${ampm}`;
-        };
-
-        const formattedCreatedRides = createdResponse.data
-          .filter(ride => 
-            ride.email?.toLowerCase() === user.email?.toLowerCase() || 
-            ride.createdBy?.email?.toLowerCase() === user.email?.toLowerCase()
-          )
-          .map(ride => ({
-            id: ride._id,
-            start: ride.source,
-            destination: ride.destination,
-            date: formatDate(ride.date),
-            time: formatTime(ride.time),
-            seatsLeft: ride.maxCapacity - (ride.passengers?.length || 0),
-            fare: ride.totalFare || 0,
-            status: 'Driver',
-            type: 'created'
-          }));
-    
-        const formattedRequestedRides = requestedResponse.data
-          .filter(request => request.ride)
-          .map(request => ({
-            id: request._id,
-            rideId: request.ride._id,
-            start: request.ride.source || 'N/A',
-            destination: request.ride.destination || 'N/A',
-            date: formatDate(request.ride.date),
-            time: formatTime(request.ride.time),
-            seatsLeft: request.ride.maxCapacity - (request.ride.passengers?.length || 0),
-            fare: request.ride.totalFare || 0,
-            status: request.status || 'pending',
-            type: 'requested'
-          }));
-    
-        setRidesData({
-          createdRides: formattedCreatedRides,
-          requestedRides: formattedRequestedRides
-        });
-      } catch (error) {
-        console.error('Error fetching rides:', error);
-        Alert.alert(
-          'Error',
-          error.response?.data?.message || 'Failed to load rides. Please try again.'
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchRides();
   }, [user?.email]);
+
+  const fetchRides = async () => {
+    try {
+      if (!user?.email) {
+        Alert.alert('Error', 'User email not available');
+        return;
+      }
+  
+      const [createdResponse, requestedResponse] = await Promise.all([
+        axios.get('http://10.0.2.2:5000/api/rides', {
+          params: { email: user.email },
+          headers: { 'Content-Type': 'application/json' }
+        }),
+        axios.get('http://10.0.2.2:5000/api/request/requests', {
+          params: { userEmail: user.email },
+          headers: { 'Content-Type': 'application/json' }
+        })
+      ]);
+  
+      const formatDate = (dateStr) => dateStr ? new Date(dateStr).toLocaleDateString('en-GB') : 'N/A';
+      const formatTime = (timeStr) => {
+        if (!timeStr) return 'N/A';
+        const [hours, minutes] = timeStr.split(':');
+        const hour = parseInt(hours);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const hour12 = hour % 12 || 12;
+        return `${hour12}:${minutes} ${ampm}`;
+      };
+
+      const formattedCreatedRides = createdResponse.data
+        .filter(ride => 
+          ride.email?.toLowerCase() === user.email?.toLowerCase() || 
+          ride.createdBy?.email?.toLowerCase() === user.email?.toLowerCase()
+        )
+        .map(ride => ({
+          id: ride._id,
+          start: ride.source,
+          destination: ride.destination,
+          date: formatDate(ride.date),
+          time: formatTime(ride.time),
+          datetime: new Date(ride.date),
+          seatsLeft: ride.maxCapacity - (ride.passengers?.length || 0),
+          fare: ride.totalFare || 0,
+          status: 'Driver',
+          type: 'created'
+        })).sort((a, b) => b.datetime - a.datetime)
+        .map(({ datetime, ...rest }) => rest);
+  
+      const formattedRequestedRides = requestedResponse.data
+        .filter(request => request.ride)
+        .map(request => ({
+          id: request._id,
+          rideId: request.ride._id,
+          start: request.ride.source || 'N/A',
+          destination: request.ride.destination || 'N/A',
+          date: formatDate(request.ride.date),
+          time: formatTime(request.ride.time),
+          seatsLeft: request.ride.maxCapacity - (request.ride.passengers?.length || 0),
+          fare: request.ride.totalFare || 0,
+          status: request.status || 'pending',
+          type: 'requested'
+        })).sort((a, b) => b.datetime - a.datetime) // Sort by datetime (newest first)
+        .map(({ datetime, ...rest }) => rest);
+  
+      setRidesData({
+        createdRides: formattedCreatedRides,
+        requestedRides: formattedRequestedRides
+      });
+    } catch (error) {
+      console.error('Error fetching rides:', error);
+      Alert.alert(
+        'Error',
+        error.response?.data?.message || 'Failed to load rides. Please try again.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const navigateToChat = (ride) => {
     if (ride.type === 'created' || ride.status === 'accepted') {
@@ -114,7 +139,7 @@ const MyRides = () => {
       if (ride.type === 'created') {
         Alert.alert(
           'Withdraw from Ride',
-          'Are you sure you want to withdraw from the ride you created?.',
+          'Are you sure you want to withdraw from the ride you created?',
           [
             { text: 'No', style: 'cancel' },
             { text: 'Yes', onPress: () => creatorWithdraw(ride.id) }
@@ -199,10 +224,10 @@ const MyRides = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'Driver':
-      case 'accepted': return '#4CAF50';
-      case 'pending': return '#FFC107';
-      case 'rejected': return '#F44336';
-      default: return '#A0AEC0';
+      case 'accepted': return COLORS.status.success;
+      case 'pending': return COLORS.status.warning;
+      case 'rejected': return COLORS.status.error;
+      default: return COLORS.status.default;
     }
   };
 
@@ -210,9 +235,9 @@ const MyRides = () => {
     <View style={styles.card}>
       <Text style={styles.routeText}>{item.start} → {item.destination}</Text>
       <View style={styles.infoRow}>
-        <Icon name="calendar" size={16} color="#718096" />
+        <Icon name="calendar" size={16} color={COLORS.primary} />
         <Text style={styles.infoText}>{item.date}</Text>
-        <Icon name="clock" size={16} color="#718096" style={{ marginLeft: 10 }} />
+        <Icon name="clock" size={16} color={COLORS.primary} style={{ marginLeft: 10 }} />
         <Text style={styles.infoText}>{item.time}</Text>
       </View>
       <View style={styles.bottomRow}>
@@ -223,18 +248,18 @@ const MyRides = () => {
       </View>
       <View style={styles.buttonRow}>
         <TouchableOpacity 
-          style={styles.chatButton} 
+          style={[styles.actionButton, styles.chatButton]} 
           onPress={() => navigateToChat(item)}
         >
-          <Icon name="chat" size={16} color="#000" />
+          <Icon name="chat" size={16} color={COLORS.text.primary} />
           <Text style={styles.chatText}>Chat</Text>
         </TouchableOpacity>
         <TouchableOpacity 
-          style={styles.withdrawButton}
+          style={[styles.actionButton, styles.withdrawButton]}
           onPress={() => handleWithdraw(item)}
         >
           <Text style={styles.withdrawText}>
-            {item.type === 'created' ? 'Cancel' : 'Withdraw'}
+            {item.type === 'created' ? 'Withdraw' : 'Withdraw'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -242,14 +267,14 @@ const MyRides = () => {
   );
 
   if (loading) {
-    return <ActivityIndicator size="large" color="#FFD700" style={{ flex: 1 }} />;
+    return <ActivityIndicator size="large" color={COLORS.primary} style={{ flex: 1 }} />;
   }
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Icon name="arrow-left" size={24} color="#000" />
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Icon name="arrow-left" size={24} color={COLORS.primary} />
         </TouchableOpacity>
         <Text style={styles.title}>My Rides</Text>
         <View style={{ width: 24 }} /> {/* For balance */}
@@ -281,7 +306,7 @@ const MyRides = () => {
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 50 }}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Icon name="car-off" size={40} color="#A0AEC0" />
+            <Icon name="car-off" size={40} color={COLORS.status.default} />
             <Text style={styles.emptyText}>
               No {selectedTab === 'created' ? 'created' : 'requested'} rides found
             </Text>
@@ -293,64 +318,143 @@ const MyRides = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F9F9F9' },
+  container: { 
+    flex: 1, 
+    backgroundColor: COLORS.background 
+  },
   header: { 
     flexDirection: 'row', 
     alignItems: 'center', 
     justifyContent: 'space-between',
     padding: 16,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.card,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEE'
+    borderBottomColor: COLORS.border,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
-  title: { fontSize: 20, fontWeight: '700', color: '#333' },
-  tabRow: { flexDirection: 'row', marginHorizontal: 16, marginVertical: 10 },
+  backButton: {
+    padding: 8,
+  },
+  title: { 
+    fontSize: 20, 
+    fontWeight: '700', 
+    color: COLORS.text.primary 
+  },
+  tabRow: { 
+    flexDirection: 'row', 
+    marginHorizontal: 16, 
+    marginVertical: 12 
+  },
   tabButton: { 
     flex: 1, 
     paddingVertical: 12,
-    backgroundColor: '#EEE', 
+    backgroundColor: COLORS.background, 
     borderRadius: 8, 
-    marginHorizontal: 5, 
-    alignItems: 'center' 
+    marginHorizontal: 4, 
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
-  activeTab: { backgroundColor: '#FFD700' },
-  tabText: { fontSize: 14, color: '#666', fontWeight: '500' },
-  activeTabText: { color: '#FFF', fontWeight: '600' },
+  activeTab: { 
+    backgroundColor: COLORS.secondary,
+    borderColor: COLORS.secondary,
+  },
+  tabText: { 
+    fontSize: 14, 
+    color: COLORS.text.secondary, 
+    fontWeight: '500' 
+  },
+  activeTabText: { 
+    color: COLORS.text.inverse, 
+    fontWeight: '600' 
+  },
   card: { 
-    backgroundColor: '#FFF', 
+    backgroundColor: COLORS.card, 
     borderRadius: 12, 
+    borderWidth: 1,
+    borderColor: COLORS.border,
     padding: 16, 
     marginVertical: 8, 
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
-    elevation: 2
+    elevation: 3,
   },
-  routeText: { fontSize: 18, fontWeight: '700', marginBottom: 10, color: '#333' },
-  infoRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  infoText: { marginLeft: 4, color: '#666', fontSize: 14 },
-  bottomRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 },
-  priceText: { fontSize: 18, fontWeight: '700', color: '#FFA500' },
-  statusText: { fontSize: 14, fontWeight: '600' },
-  buttonRow: { flexDirection: 'row', marginTop: 12 },
+  routeText: { 
+    fontSize: 18, 
+    fontWeight: '700', 
+    marginBottom: 10, 
+    color: COLORS.text.primary 
+  },
+  infoRow: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    marginBottom: 8 
+  },
+  infoText: { 
+    marginLeft: 4, 
+    color: COLORS.text.secondary, 
+    fontSize: 14 
+  },
+  bottomRow: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border
+  },
+  priceText: { 
+    fontSize: 18, 
+    fontWeight: '700', 
+    color: COLORS.primary 
+  },
+  statusText: { 
+    fontSize: 14, 
+    fontWeight: '600' 
+  },
+  buttonRow: { 
+    flexDirection: 'row', 
+    marginTop: 12, 
+    justifyContent: 'space-between'
+  },
+  actionButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 0,
+  },
   chatButton: { 
     flexDirection: 'row', 
     alignItems: 'center', 
-    backgroundColor: '#FFD700', 
-    paddingHorizontal: 12, 
-    paddingVertical: 6, 
-    borderRadius: 20, 
+    backgroundColor: COLORS.accent,
     marginRight: 10 
   },
-  chatText: { marginLeft: 6, fontWeight: '600' },
-  withdrawButton: { 
-    backgroundColor: '#EEE', 
-    paddingHorizontal: 12, 
-    paddingVertical: 6, 
-    borderRadius: 20 
+  chatText: { 
+    marginLeft: 6, 
+    fontWeight: '600',
+    color: COLORS.text.primary
   },
-  withdrawText: { color: '#333', fontWeight: '600' },
+  withdrawButton: { 
+    backgroundColor: COLORS.background,
+    borderWidth: 1,
+    borderColor: COLORS.border
+  },
+  withdrawText: { 
+    color: COLORS.text.primary, 
+    fontWeight: '600', 
+    
+  },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -359,7 +463,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     marginTop: 10,
-    color: '#A0AEC0',
+    color: COLORS.text.secondary,
     fontSize: 16
   }
 });

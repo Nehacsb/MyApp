@@ -1,11 +1,16 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import {
     View, Text, StyleSheet, TextInput,
-    TouchableOpacity, FlatList, Alert
+    TouchableOpacity, FlatList, Alert,
+    ImageBackground, StatusBar
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
+import {LinearGradient} from 'react-native-linear-gradient';
+
+// Background image - you'll need to add this to your assets folder
+const backgroundImage = require('../../assets/Wallpaper.jpg');
 
 const ChatFeature = ({ route, navigation }) => {
     const { rideId, rideDetails } = route.params;
@@ -15,109 +20,88 @@ const ChatFeature = ({ route, navigation }) => {
     const [loading, setLoading] = useState(true);
     const [lastUpdate, setLastUpdate] = useState(new Date());
     const flatListRef = useRef(null);
+    const [isAtBottom, setIsAtBottom] = useState(true);
+    const [hasNewMessage, setHasNewMessage] = useState(false);
 
-    useEffect(() => {   
-        console.log("Ride ID:", rideId);    
+    useEffect(() => {
         navigation.setOptions({
-            title: `${rideDetails.start} → ${rideDetails.destination}`,
-            headerLeft: () => (
-                <TouchableOpacity 
-                    onPress={() => navigation.goBack()}
-                    style={{ marginLeft: 10 }}
-                >
-                    <Icon name="arrow-left" size={24} color="#000" />
-                </TouchableOpacity>
-            ),
-            headerStyle: {
-                backgroundColor: '#FFB22C',
-                elevation: 0,
-                shadowOpacity: 0,
-            },
-            headerTintColor: '#999',
-            headerTitleStyle: {
-                fontWeight: 'bold',
-                color: '#999',
-            },
+            headerShown: false
         });
 
-        // Initial fetch
         fetchMessages();
-
-        // Set up polling for new messages
-        // const interval = setInterval(fetchMessages, 3000);
-
-        // return () => clearInterval(interval);
+        const interval = setInterval(fetchMessages, 3000);
+        return () => clearInterval(interval);
     }, [rideId]);
 
+    const handleSendMessage = async () => {
+        if (!newMessage.trim()) return;
+        const fullName = `${user.firstName} ${user.lastName || ''}`.trim();
+    
+        const messageToSend = {
+            rideId,
+            content: newMessage,
+            timestamp: new Date().toISOString(),
+            senderId: user._id,
+            senderName: fullName,
+        };
+    
+        setNewMessage('');
+    
+        try {
+            await axios.post(`http://10.0.2.2:5000/api/chat/${rideId}`, messageToSend);
+            // don't manually add message now
+            // it will come from fetchMessages()
+        } catch (error) {
+            console.error('Error sending message:', error);
+            Alert.alert('Error', 'Failed to send message');
+        }
+    };
+    
     const fetchMessages = async () => {
         try {
-            const response = await axios.get(
-                `http://10.0.2.2:5000/api/chat/${rideId}?since=${lastUpdate.toISOString()}`
-            );
-            
-            if (response.data.length > 0) {
-                setMessages(prev => [...prev, ...response.data]);
-                setLastUpdate(new Date());
-                
-                // Scroll to bottom when new messages arrive
-                setTimeout(() => {
-                    flatListRef.current?.scrollToEnd({ animated: true });
-                }, 100);
-            }
+            const response = await axios.get(`http://10.0.2.2:5000/api/chat/${rideId}`);
+    
+            setMessages(prevMessages => {
+                const existingIds = new Set(prevMessages.map(msg => msg._id));
+                const newUniqueMessages = response.data.filter(msg => !existingIds.has(msg._id));
+    
+                if (newUniqueMessages.length > 0) {
+                    if (!isAtBottom) {
+                        setHasNewMessage(true); // User is reading old messages -> Show popup
+                    }
+                    return [...prevMessages, ...newUniqueMessages];
+                }
+                return prevMessages;
+            });
+    
+            setLastUpdate(new Date());
         } catch (error) {
             console.error('Error fetching messages:', error);
         } finally {
             setLoading(false);
         }
     };
-
+    
+    const handleScroll = (event) => {
+        const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+        const paddingToBottom = 20; // 20px tolerance
+        const isBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToBottom;
+    
+        if (isBottom !== isAtBottom) {
+            setIsAtBottom(isBottom);
+        }
+        
+        if (isBottom) {
+            setHasNewMessage(false); // hide popup if at bottom
+        }
+    };
+    
     const showRideDetails = () => {
-        navigation.navigate('RideDetails', { 
+        navigation.navigate('RideDetails', {
             rideId,
             rideDetails,
-            isFromChat: true 
+            isFromChat: true
         });
-    };
-
-    const getColorForUser = (name) => {
-        const colors = ['#FFB22C', '#91D8E4', '#FF6969', '#AEDB9D', '#9D9DF2'];
-        let hash = 0;
-        for (let i = 0; i < name.length; i++) {
-            hash = name.charCodeAt(i) + ((hash << 5) - hash);
-        }
-        return colors[Math.abs(hash) % colors.length];
-    };
-
-    const handleSendMessage = async () => {
-        if (!newMessage.trim()) reinrturn;
-        const fullName = `${user.firstName} ${user.lastName || ''}`.trim();
-
-        try {
-            const messageToSend = {
-                rideId,
-                content: newMessage,
-                timestamp: new Date().toISOString(),
-                senderId: user._id,
-                senderName: fullName,
-            };
-
-            const tempId = Date.now().toString();
-            setMessages(prev => [...prev, { ...messageToSend, _id: tempId }]);
-            setNewMessage('');
-
-            await axios.post(`http://10.0.2.2:5000/api/chat/${rideId}`, messageToSend);
-            
-            // Trigger immediate update
-            await fetchMessages();
-            
-            // Scroll to bottom after sending
-            setTimeout(() => {
-                flatListRef.current?.scrollToEnd({ animated: true });
-            }, 100);
-        } catch (error) {
-            console.error('Error sending message:', error);
-            Alert.alert('Error', 'Failed to send message');
-        }
     };
 
     const renderMessage = ({ item }) => {
@@ -130,125 +114,257 @@ const ChatFeature = ({ route, navigation }) => {
         }
 
         const isCurrentUser = item.senderId === user._id;
-        const backgroundColor = isCurrentUser ? '#FFB22C' : getColorForUser(item.senderName);
-        const textColor = isCurrentUser ? '#fff' : '#333';
+        const messageTime = new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
         return (
             <View style={[
-                styles.messageContainer,
-                { 
-                    alignSelf: isCurrentUser ? 'flex-end' : 'flex-start',
-                    backgroundColor,
-                    borderBottomRightRadius: isCurrentUser ? 0 : 10,
-                    borderBottomLeftRadius: isCurrentUser ? 10 : 0
+                styles.messageRow,
+                {
+                    justifyContent: isCurrentUser ? 'flex-end' : 'flex-start',
                 }
             ]}>
                 {!isCurrentUser && (
-                    <Text style={[styles.senderName, { color: textColor }]}>{item.senderName}</Text>
+                    <View style={styles.avatarContainer}>
+                        <Text style={styles.avatarText}>
+                            {item.senderName.charAt(0).toUpperCase()}
+                        </Text>
+                    </View>
                 )}
-                <Text style={[styles.messageText, { color: textColor }]}>{item.content}</Text>
-                <Text style={[styles.messageTime, { color: textColor }]}>
-                    {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </Text>
+                
+                <View style={[
+                    styles.messageContainer,
+                    isCurrentUser ? styles.currentUserMessage : styles.otherUserMessage
+                ]}>
+                    {!isCurrentUser && (
+                        <Text style={styles.senderName}>{item.senderName}</Text>
+                    )}
+                    <Text style={[
+                        styles.messageText,
+                        isCurrentUser ? styles.currentUserText : styles.otherUserText
+                    ]}>
+                        {item.content}
+                    </Text>
+                    <Text style={[
+                        styles.messageTime,
+                        isCurrentUser ? styles.currentUserTime : styles.otherUserTime
+                    ]}>
+                        {messageTime}
+                    </Text>
+                </View>
+                
+                {isCurrentUser && (
+                    <View style={styles.avatarContainer}>
+                        <Text style={styles.avatarText}>
+                            {user.firstName.charAt(0).toUpperCase()}
+                        </Text>
+                    </View>
+                )}
             </View>
         );
     };
 
     return (
-        <View style={styles.container}>
-            <View style={styles.header}>
-                <TouchableOpacity 
-                    onPress={() => navigation.goBack()}
-                    style={styles.backButton}
+        <ImageBackground 
+            source={backgroundImage} 
+            style={styles.backgroundImage}
+            resizeMode="cover"
+        >
+           <StatusBar backgroundColor="#50ABE7" barStyle="light-content" />
+            
+            <View style={styles.container}>
+                {/* Custom Header */}
+                <LinearGradient 
+                    colors={['#50ABE7', '#6cbde9']}
+                    start={{x: 0, y: 0}}
+                    end={{x: 1, y: 0}}
+                    style={styles.header}
                 >
-                    <Icon name="arrow-left" size={24} color="#000" />
-                </TouchableOpacity>
-                <TouchableOpacity 
-                    style={styles.headerTitleContainer}
-                    onPress={showRideDetails}
-                >
-                    <Text style={styles.headerTitle}>
-                        {rideDetails.start} → {rideDetails.destination}
-                    </Text>
-                </TouchableOpacity>
-                <View style={{ width: 24 }} /> {/* Spacer for alignment */}
-            </View>
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                        <Icon name="arrow-left" size={24} color="#FFF" />
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity style={styles.headerTitleContainer} onPress={showRideDetails}>
+                        <Icon name="map-marker-path" size={20} color="#FFF" style={styles.headerIcon} />
+                        <Text style={styles.headerTitle}>
+                            {rideDetails.start} → {rideDetails.destination}
+                        </Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity onPress={showRideDetails} style={styles.infoButton}>
+                        <Icon name="information-outline" size={24} color="#FFF" />
+                    </TouchableOpacity>
+                </LinearGradient>
 
-            {loading ? (
-                <View style={styles.loadingContainer}>
-                    <Text>Loading messages...</Text>
-                </View>
-            ) : (
-                <>
-                    <FlatList
-                        ref={flatListRef}
-                        data={messages}
-                        renderItem={renderMessage}
-                        keyExtractor={(item) => item._id}
-                        contentContainerStyle={styles.messagesList}
-                        onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-                        onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
-                    />
-
-                    <View style={styles.inputContainer}>
-                        <TextInput
-                            style={styles.input}
-                            value={newMessage}
-                            onChangeText={setNewMessage}
-                            placeholder="Type a message..."
-                            placeholderTextColor="#999"
-                            multiline
-                        />
-                        <TouchableOpacity 
-                            style={styles.sendButton} 
-                            onPress={handleSendMessage}
-                            disabled={!newMessage.trim()}
-                        >
-                            <Icon 
-                                name="send" 
-                                size={24} 
-                                color={newMessage.trim() ? "#FFB22C" : "#ccc"} 
-                            />
-                        </TouchableOpacity>
+                {loading ? (
+                    <View style={styles.loadingContainer}>
+                        <Text style={styles.loadingText}>Loading messages...</Text>
                     </View>
-                </>
-            )}
-        </View>
+                ) : (
+                    <>
+                        <FlatList
+                            ref={flatListRef}
+                            data={messages}
+                            renderItem={renderMessage}
+                            keyExtractor={(item) => item._id}
+                            contentContainerStyle={styles.messagesList}
+                            onScroll={handleScroll}
+                            onContentSizeChange={() => {
+                                if (isAtBottom) {
+                                    flatListRef.current?.scrollToEnd({ animated: true });
+                                }
+                            }}
+                        />
+                        
+                        {hasNewMessage && (
+                            <TouchableOpacity
+                                onPress={() => {
+                                    flatListRef.current?.scrollToEnd({ animated: true });
+                                    setHasNewMessage(false);
+                                }}
+                                style={styles.newMessageBanner}
+                            >
+                                <Icon name="chevron-down" size={18} color="#fff" />
+                                <Text style={styles.newMessageText}>New Message</Text>
+                            </TouchableOpacity>
+                        )}
+
+                        <View style={styles.inputContainer}>
+                            <TextInput
+                                style={styles.input}
+                                value={newMessage}
+                                onChangeText={setNewMessage}
+                                placeholder="Type a message..."
+                                placeholderTextColor="#999"
+                                multiline
+                            />
+                            <TouchableOpacity
+                                style={[
+                                    styles.sendButton,
+                                    newMessage.trim() ? styles.sendButtonActive : {}
+                                ]}
+                                onPress={handleSendMessage}
+                                disabled={!newMessage.trim()}
+                            >
+                                <Icon
+                                    name="send"
+                                    size={22}
+                                    color={newMessage.trim() ? "#FFF" : "#ccc"}
+                                />
+                            </TouchableOpacity>
+                        </View>
+                    </>
+                )}
+            </View>
+        </ImageBackground>
     );
 };
 
 const styles = StyleSheet.create({
+    backgroundImage: {
+        flex: 1,
+        width: '100%',
+    },
     container: {
         flex: 1,
-        backgroundColor: '#FFF8F0',
+        backgroundColor: 'rgba(255, 255, 255, 0.85)',
     },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
     },
+    loadingText: {
+        fontSize: 16,
+        color: '#666',
+        fontWeight: '500',
+    },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingVertical: 15,
+        paddingHorizontal: 12,
+        borderBottomLeftRadius: 20,
+        borderBottomRightRadius: 20,
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+    },
+    backButton: {
+        padding: 6,
+    },
+    headerTitleContainer: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    headerIcon: {
+        marginRight: 6,
+    },
+    headerTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#FFF',
+        textAlign: 'center',
+    },
+    infoButton: {
+        padding: 6,
+    },
     messagesList: {
         padding: 15,
-        paddingBottom: 5,
+        paddingBottom: 10,
+    },
+    messageRow: {
+        flexDirection: 'row',
+        alignItems: 'flex-end',
+        marginBottom: 12,
+    },
+    avatarContainer: {
+        height: 36,
+        width: 36,
+        borderRadius: 18,
+        backgroundColor: '#87ceeb',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginHorizontal: 6,
+    },
+    avatarText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
     },
     messageContainer: {
-        maxWidth: '80%',
-        padding: 12,
-        borderRadius: 10,
-        marginBottom: 10,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.2,
-        shadowRadius: 2,
-        elevation: 2,
+        maxWidth: '70%',
+        paddingHorizontal: 14,
+        paddingVertical: 10,
+        borderRadius: 18,
+    },
+    currentUserMessage: {
+        backgroundColor: '#87ceeb',
+        borderBottomRightRadius: 4,
+    },
+    otherUserMessage: {
+        backgroundColor: '#FFFFFF',
+        borderBottomLeftRadius: 4,
     },
     senderName: {
         fontWeight: 'bold',
         marginBottom: 4,
         fontSize: 12,
+        color: '#555',
     },
     messageText: {
-        fontSize: 16,
+        fontSize: 15,
+        lineHeight: 20,
+    },
+    currentUserText: {
+        color: '#FFFFFF',
+    },
+    otherUserText: {
+        color: '#333333',
     },
     messageTime: {
         fontSize: 10,
@@ -256,67 +372,84 @@ const styles = StyleSheet.create({
         marginTop: 4,
         opacity: 0.8,
     },
+    currentUserTime: {
+        color: '#FFFFFF',
+    },
+    otherUserTime: {
+        color: '#777777',
+    },
     systemMessageContainer: {
         alignSelf: 'center',
-        backgroundColor: '#f0f0f0',
-        padding: 8,
+        backgroundColor: 'rgba(245, 245, 245, 0.9)',
+        paddingVertical: 6,
+        paddingHorizontal: 12,
         borderRadius: 15,
-        marginVertical: 5,
+        marginVertical: 8,
+        elevation: 1,
     },
     systemMessageText: {
         color: '#666',
         fontSize: 12,
         textAlign: 'center',
     },
+    newMessageBanner: {
+        backgroundColor: '#50ABE7',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        borderRadius: 20,
+        position: 'absolute',
+        bottom: 80,
+        alignSelf: 'center',
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 3,
+    },
+    newMessageText: {
+        color: '#fff',
+        fontSize: 14,
+        fontWeight: '600',
+        marginLeft: 5,
+    },
     inputContainer: {
         flexDirection: 'row',
-        padding: 10,
+        padding: 12,
+        backgroundColor: '#FFFFFF',
         borderTopWidth: 1,
         borderTopColor: '#EEE',
-        backgroundColor: '#FFF',
         alignItems: 'center',
     },
     input: {
         flex: 1,
         borderWidth: 1,
-        borderColor: '#DDD',
-        borderRadius: 25,
-        paddingHorizontal: 15,
+        borderColor: '#E0E0E0',
+        borderRadius: 24,
+        paddingHorizontal: 16,
         paddingVertical: 10,
         marginRight: 10,
         maxHeight: 100,
         fontSize: 16,
-        backgroundColor: '#FFF',
+        backgroundColor: '#FAFAFA',
     },
     sendButton: {
         justifyContent: 'center',
         alignItems: 'center',
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: '#F0F0F0',
     },
-    backButton: {
-        padding: 5,
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingVertical: 15,
-        paddingHorizontal: 15,
-        backgroundColor: '#FFF',
-        borderBottomWidth: 1,
-        borderBottomColor: '#EEE',
-    },
-    headerTitleContainer: {
-        flex: 1,
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#000',
-        textAlign: 'center',
-        marginHorizontal: 10,
+    sendButtonActive: {
+        backgroundColor: '#50ABE7',
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.2,
+        shadowRadius: 1,
     },
 });
 

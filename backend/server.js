@@ -10,6 +10,8 @@ const adminRoutes = require("./routes/adminRoutes");
 
 const locationRoutes = require("./routes/locationRoutes");
 const chatRoutes = require("./routes/chatRoutes");
+const savedCabRoutes = require('./routes/savedcabRoutes');
+
 
 dotenv.config();
 const app = express();
@@ -34,6 +36,9 @@ app.use("/api", adminRoutes);
 app.use("/api", locationRoutes);
 
 app.use("/api", chatRoutes);
+
+app.use('/api', savedCabRoutes);
+
 
 app.get("/", (req, res) => {
   res.send("Server is running! 🚀");

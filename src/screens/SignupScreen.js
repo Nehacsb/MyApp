@@ -2,6 +2,7 @@ import React, { useState, useContext } from "react";
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   Modal, TouchableWithoutFeedback, ActivityIndicator,
+  ScrollView
 } from "react-native";
 import { AuthContext } from "../context/AuthContext";
 
@@ -60,116 +61,188 @@ const SignupScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Create an Account</Text>
-      <Text style={styles.subtitle}>Join us and start your journey</Text>
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <View style={styles.container}>
+        {/* Signup Form */}
+        <View style={styles.signupContainer}>
+          <Text style={styles.title}>Create an Account</Text>
+          <Text style={styles.subtitle}>Join us and start your journey</Text>
 
-      {!otpSent && (
-        <>
-          <TextInput placeholder="First Name" placeholderTextColor="#aaa" value={firstName} onChangeText={setFirstName} style={styles.input} />
-          <TextInput placeholder="Last Name" placeholderTextColor="#aaa" value={lastName} onChangeText={setLastName} style={styles.input} />
+          {!otpSent ? (
+            <>
+              <TextInput
+                placeholder="First Name"
+                placeholderTextColor="#9e9e9e"
+                value={firstName}
+                onChangeText={setFirstName}
+                style={styles.input}
+              />
+              <TextInput
+                placeholder="Last Name"
+                placeholderTextColor="#9e9e9e"
+                value={lastName}
+                onChangeText={setLastName}
+                style={styles.input}
+              />
 
-          {/* Gender Dropdown */}
-          <TouchableOpacity onPress={() => setDropdownVisible(true)} style={styles.dropdownTrigger}>
-            <Text style={styles.dropdownText}>{gender || "Select Gender"}</Text>
+              {/* Gender Dropdown */}
+              <TouchableOpacity 
+                onPress={() => setDropdownVisible(true)} 
+                style={[styles.input, {justifyContent: 'center'}]}
+              >
+                <Text style={{color: gender ? '#424242' : '#9e9e9e'}}>
+                  {gender || "Select Gender"}
+                </Text>
+              </TouchableOpacity>
+              <Modal visible={dropdownVisible} transparent animationType="fade">
+                <TouchableWithoutFeedback onPress={() => setDropdownVisible(false)}>
+                  <View style={styles.modalOverlay}>
+                    <View style={styles.dropdownOptions}>
+                      {genders.map((item) => (
+                        <TouchableOpacity 
+                          key={item} 
+                          onPress={() => {
+                            setGender(item);
+                            setDropdownVisible(false);
+                          }} 
+                          style={styles.dropdownOption}
+                        >
+                          <Text style={styles.dropdownOptionText}>{item}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+                </TouchableWithoutFeedback>
+              </Modal>
+
+              <TextInput
+                placeholder="Email"
+                placeholderTextColor="#9e9e9e"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                style={styles.input}
+              />
+              <TextInput
+                placeholder="Phone Number"
+                placeholderTextColor="#9e9e9e"
+                value={phoneNumber}
+                onChangeText={setPhoneNumber}
+                keyboardType="phone-pad"
+                style={styles.input}
+              />
+              <TextInput
+                placeholder="Password"
+                placeholderTextColor="#9e9e9e"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                style={styles.input}
+              />
+            </>
+          ) : (
+            <>
+              <TextInput
+                placeholder="Enter OTP"
+                placeholderTextColor="#9e9e9e"
+                value={otp}
+                onChangeText={setOtp}
+                keyboardType="numeric"
+                style={styles.input}
+              />
+              {otpError ? <Text style={styles.errorText}>{otpError}</Text> : null}
+            </>
+          )}
+
+          <TouchableOpacity
+            style={styles.button}
+            onPress={otpSent ? handleVerifyOtp : handleSignup}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <ActivityIndicator color="#ffffff" />
+            ) : (
+              <Text style={styles.buttonText}>
+                {otpSent ? "Verify OTP" : "Sign Up"}
+              </Text>
+            )}
           </TouchableOpacity>
-          <Modal visible={dropdownVisible} transparent animationType="fade">
-            <TouchableWithoutFeedback onPress={() => setDropdownVisible(false)}>
-              <View style={styles.modalOverlay}>
-                <View style={styles.dropdownOptions}>
-                  {genders.map((item) => (
-                    <TouchableOpacity key={item} onPress={() => { setGender(item); setDropdownVisible(false); }} style={styles.dropdownOption}>
-                      <Text style={styles.dropdownOptionText}>{item}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-            </TouchableWithoutFeedback>
-          </Modal>
 
-          <TextInput placeholder="Email" placeholderTextColor="#aaa" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" style={styles.input} />
-          <TextInput placeholder="Phone Number" placeholderTextColor="#aaa" value={phoneNumber} onChangeText={setPhoneNumber} keyboardType="phone-pad" style={styles.input} />
-          <TextInput placeholder="Password" placeholderTextColor="#aaa" value={password} onChangeText={setPassword} secureTextEntry style={styles.input} />
-        </>
-      )}
-
-      {/* OTP Input Field */}
-      {otpSent && (
-        <>
-          <TextInput
-            placeholder="Enter OTP"
-            placeholderTextColor="#aaa"
-            value={otp}
-            onChangeText={setOtp}
-            keyboardType="numeric"
-            style={styles.input}
-          />
-          {otpError ? <Text style={styles.errorText}>{otpError}</Text> : null}
-        </>
-      )}
-
-      <TouchableOpacity
-        style={styles.button}
-        onPress={otpSent ? handleVerifyOtp : handleSignup}
-        disabled={isSubmitting}
-      >
-        {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{otpSent ? "Verify OTP" : "Sign Up"}</Text>}
-      </TouchableOpacity>
-
-      <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-        <Text style={styles.link}>Already have an account? Login</Text>
-      </TouchableOpacity>
-    </View>
+          <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+            <Text style={styles.link}>Already have an account? Login</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+  },
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
     justifyContent: "center",
-    alignItems: "center",
-    padding: 24,
+    backgroundColor: "#ffffff",
+    paddingHorizontal: 20,
+  },
+  signupContainer: {
+    backgroundColor: '#f5f5f5',
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: "#757575",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 3,
   },
   title: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: "600",
-    color: "#1F2937",
-    marginBottom: 8,
+    color: "#424242",
     textAlign: "center",
+    marginBottom: 4,
   },
   subtitle: {
     fontSize: 16,
-    color: "#4B5563",
-    marginBottom: 24,
+    color: "#757575",
     textAlign: "center",
+    marginBottom: 20,
   },
   input: {
     width: "100%",
-    paddingVertical: 14,
+    paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 10,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#E5E7EB",
-    color: "#1F2937",
+    borderColor: "#e0e0e0",
+    color: "#424242",
     fontSize: 16,
-    marginBottom: 16,
+    marginBottom: 12,
   },
-  dropdownTrigger: {
+  button: {
+    backgroundColor: "#50ABE7",
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: "center",
     width: "100%",
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-    backgroundColor: "#F3F4F6",
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    justifyContent: "center",
-    marginBottom: 16,
+    marginTop: 6,
   },
-  dropdownText: {
-    color: "#1F2937",
+  buttonText: {
+    color: "#FFFFFF",
     fontSize: 16,
+    fontWeight: "500",
+  },
+  link: {
+    marginTop: 16,
+    color: "#50ABE7",
+    fontSize: 14,
+    textAlign: "center",
+    fontWeight: "500",
   },
   modalOverlay: {
     flex: 1,
@@ -183,44 +256,23 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingVertical: 8,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: "#e0e0e0",
   },
   dropdownOption: {
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
+    borderBottomColor: "#f5f5f5",
   },
   dropdownOptionText: {
-    color: "#1F2937",
+    color: "#424242",
     fontSize: 16,
-  },
-  button: {
-    backgroundColor: "#111827",
-    paddingVertical: 14,
-    borderRadius: 10,
-    width: "100%",
-    alignItems: "center",
-    marginTop: 8,
-  },
-  buttonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "500",
-  },
-  link: {
-    marginTop: 20,
-    color: "#2563EB",
-    fontSize: 15,
-    textAlign: "center",
-    fontWeight: "500",
   },
   errorText: {
-    color: "#F87171",
+    color: "#f44336",
     fontSize: 14,
-    marginTop: 8,
+    marginBottom: 12,
     textAlign: "center",
   },
 });
-
 export default SignupScreen;
