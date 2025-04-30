@@ -3,7 +3,7 @@ import { View, Alert, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndi
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import axios from 'axios';
 
-const RideDetailsScreen = ({ route, navigation }) => {
+const RideDetails = ({ route, navigation }) => {
     const { rideId, isFromChat } = route.params;
     const [ride, setRide] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -258,4 +258,4 @@ const styles = StyleSheet.create({
 
 
 
-export default RideDetailsScreen;
+export default RideDetails;

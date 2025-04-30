@@ -19,7 +19,7 @@ import ForgotPasswordScreen from "../screens/ForgotPasswordScreen";
 import VerifyResetOtpScreen from "../screens/VerifyResetOtpScreen";
 import ResetPasswordScreen from "../screens/ResetPasswordScreen";
 import EditProfileScreen from "../screens/EditProfileScreen";
-import RideDetailsScreen from "../components/RideDetails"; 
+import RideDetails from "../components/RideDetails"; 
 
 import ProfileSidebar from "../components/ProfileSidebar";
 import AddCab from "../components/AddCab";
