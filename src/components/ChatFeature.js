@@ -10,7 +10,7 @@ import { AuthContext } from '../context/AuthContext';
 import {LinearGradient} from 'react-native-linear-gradient';
 
 // Background image - you'll need to add this to your assets folder
-const backgroundImage = require('../../assets/Wallpaper.jpg');
+// const backgroundImage = require('../../assets/Wallpaper.jpg');
 
 const ChatFeature = ({ route, navigation }) => {
     const { rideId, rideDetails } = route.params;
@@ -48,7 +48,7 @@ const ChatFeature = ({ route, navigation }) => {
         setNewMessage('');
     
         try {
-            await axios.post(`http://10.0.2.2:5000/api/chat/${rideId}`, messageToSend);
+            await axios.post(`https://myapp-hu0i.onrender.com/api/chat/${rideId}`, messageToSend);
             // don't manually add message now
             // it will come from fetchMessages()
         } catch (error) {
@@ -59,7 +59,7 @@ const ChatFeature = ({ route, navigation }) => {
     
     const fetchMessages = async () => {
         try {
-            const response = await axios.get(`http://10.0.2.2:5000/api/chat/${rideId}`);
+            const response = await axios.get(`https://myapp-hu0i.onrender.com/api/chat/${rideId}`);
     
             setMessages(prevMessages => {
                 const existingIds = new Set(prevMessages.map(msg => msg._id));
@@ -163,14 +163,7 @@ const ChatFeature = ({ route, navigation }) => {
         );
     };
 
-    return (
-        <ImageBackground 
-            source={backgroundImage} 
-            style={styles.backgroundImage}
-            resizeMode="cover"
-        >
-           <StatusBar backgroundColor="#50ABE7" barStyle="light-content" />
-            
+    return (            
             <View style={styles.container}>
                 {/* Custom Header */}
                 <LinearGradient 
@@ -255,7 +248,6 @@ const ChatFeature = ({ route, navigation }) => {
                     </>
                 )}
             </View>
-        </ImageBackground>
     );
 };
 
@@ -341,6 +333,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: 14,
         paddingVertical: 10,
         borderRadius: 18,
+        borderWidth: 1,
+        borderColor: '#E0E0E0',
     },
     currentUserMessage: {
         backgroundColor: '#87ceeb',

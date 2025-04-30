@@ -61,7 +61,7 @@ const CreateRide = ({ navigation }) => {
   useEffect(() => {
     const fetchLocations = async () => {
       try {
-        const res = await axios.get('http://10.0.2.2:5000/api/locations');
+        const res = await axios.get('https://myapp-hu0i.onrender.com/api/locations');
         const locations = Array.isArray(res.data)
           ? res.data.map(loc => loc.name)
           : (res.data.locations || []).map(loc => loc.name);
@@ -152,7 +152,7 @@ const CreateRide = ({ navigation }) => {
         otherInfo: otherInfo
       };
       console.log('Ride DDetails:', rideDetails);
-      const response = await axios.post('http://10.0.2.2:5000/api/rides', rideDetails);
+      const response = await axios.post('https://myapp-hu0i.onrender.com/api/rides', rideDetails);
       console.log('Ride created successfully:', response.data);
       Alert.alert('Success', 'Ride created successfully!');
       navigation.goBack();

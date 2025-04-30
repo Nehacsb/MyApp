@@ -19,14 +19,14 @@ const PendingRequests = ({ navigation }) => {
   const fetchPendingRequests = async () => {
     try {
       // Get rides created by this user
-      const ridesResponse = await axios.get('http://10.0.2.2:5000/api/rides', {
+      const ridesResponse = await axios.get('https://myapp-hu0i.onrender.com/api/rides', {
         params: { email: user.email }
       });
       
       const rideIds = ridesResponse.data.map(ride => ride._id);
       
       // Get pending requests for these rides
-      const requestsResponse = await axios.get('http://10.0.2.2:5000/api/request/requests', {
+      const requestsResponse = await axios.get('https://myapp-hu0i.onrender.com/api/request/requests', {
         params: { 
           rideIds: JSON.stringify(rideIds),
           status: 'pending'
@@ -54,7 +54,7 @@ const PendingRequests = ({ navigation }) => {
     try {
       console.log('Adding passenger:', { rideId, userId, seats });
       await axios.patch(
-        `http://10.0.2.2:5000/api/request/${rideId}/add-passenger`,
+        `https://myapp-hu0i.onrender.com/api/request/${rideId}/add-passenger`,
         { userId, seats }
       );
     } catch (error) {
@@ -67,7 +67,7 @@ const PendingRequests = ({ navigation }) => {
     try {
       // First update the request status
       const response = await axios.patch(
-        `http://10.0.2.2:5000/api/request/requests/${requestId}`,
+        `https://myapp-hu0i.onrender.com/api/request/requests/${requestId}`,
         { status: action }
       );
       

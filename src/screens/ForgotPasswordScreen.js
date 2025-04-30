@@ -27,13 +27,13 @@ const ForgotPasswordScreen = ({ navigation }) => {
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
         {/* Lock Image positioned to touch the form */}
-        <View style={styles.imageContainer}>
+        {/* <View style={styles.imageContainer}>
           <Image 
             source={require('../../assets/location.jpeg')} 
             style={styles.image}
             resizeMode="contain"
           />
-        </View>
+        </View> */}
 
         <View style={styles.formContainer}>
           <Text style={styles.title}>Reset Your Password</Text>
