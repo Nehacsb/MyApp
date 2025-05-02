@@ -25,16 +25,16 @@ const Dashboard = ({ navigation }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef(null);
   
-  // useEffect(() => {
-  //   const showAboutOnce = async () => {
-  //     const hasSeen = await AsyncStorage.getItem('hasSeenAboutApp');
-  //     if (hasSeen !== 'true') {
-  //       setAboutVisible(true);
-  //       await AsyncStorage.setItem('hasSeenAboutApp', 'true');
-  //     }
-  //   };
-  //   showAboutOnce();
-  // }, []);
+  useEffect(() => {
+    const showAboutOnce = async () => {
+      const hasSeen = await AsyncStorage.getItem('hasSeenAboutApp');
+      if (hasSeen !== 'true') {
+        setAboutVisible(true);
+        await AsyncStorage.setItem('hasSeenAboutApp', 'true');
+      }
+    };
+    showAboutOnce();
+  }, []);
 
   useEffect(() => {
     fetchSavedCabs();

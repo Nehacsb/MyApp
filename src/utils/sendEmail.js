@@ -12,7 +12,7 @@ const sendEmail = async (to, subject, text) => {
     });
 
     const info = await transporter.sendMail({
-      from: `"UniGo" <${process.env.EMAIL_USER}>`,
+      from: `"RideMate" <${process.env.EMAIL_USER}>`,
       to,
       subject,
       text,
