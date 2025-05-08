@@ -40,7 +40,7 @@ const LocationManagement = () => {
   const fetchLocations = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch("https://myapp-hu0i.onrender.com/api/locations");
+      const response = await fetch("http://10.0.2.2:5000/api/locations");
       const data = await handleResponse(response);
       setLocations(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -60,7 +60,7 @@ const LocationManagement = () => {
     if (!trimmedLocation) return;
 
     try {
-      const response = await fetch("https://myapp-hu0i.onrender.com/api/locations", {
+      const response = await fetch("http://10.0.2.2:5000/api/locations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: trimmedLocation }),
@@ -78,7 +78,7 @@ const LocationManagement = () => {
   const removeLocation = async (locationToRemove) => {
     try {
       const locationId = locationToRemove._id || locationToRemove.id || locationToRemove;
-      const response = await fetch(`https://myapp-hu0i.onrender.com/api/locations/${locationId}`, { method: "DELETE" });
+      const response = await fetch(`http://10.0.2.2:5000/api/locations/${locationId}`, { method: "DELETE" });
       await handleResponse(response);
       setLocations(locations.filter(l => (l._id || l.id || l) !== locationId));
       Alert.alert("Success", "Location removed successfully");
@@ -176,7 +176,7 @@ const LocationManagement = () => {
   
       for (const locName of newLocations) {
         try {
-          const response = await fetch('https://myapp-hu0i.onrender.com/api/locations', {
+          const response = await fetch('http://10.0.2.2:5000/api/locations', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name: locName }),

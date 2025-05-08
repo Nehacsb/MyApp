@@ -48,11 +48,11 @@ const MyRides = () => {
       }
   
       const [createdResponse, requestedResponse] = await Promise.all([
-        axios.get('https://myapp-hu0i.onrender.com/api/rides', {
+        axios.get('http://10.0.2.2:5000/api/rides', {
           params: { email: user.email },
           headers: { 'Content-Type': 'application/json' }
         }),
-        axios.get('https://myapp-hu0i.onrender.com/api/request/requests', {
+        axios.get('http://10.0.2.2:5000/api/request/requests', {
           params: { userEmail: user.email },
           headers: { 'Content-Type': 'application/json' }
         })
@@ -164,7 +164,7 @@ const MyRides = () => {
   const creatorWithdraw = async (rideId) => {
     try {
       const response = await axios.patch(
-        `https://myapp-hu0i.onrender.com/api/rides/withdraw-creator/${rideId}`,
+        `http://10.0.2.2:5000/api/rides/withdraw-creator/${rideId}`,
         { userEmail: user.email }
       );
 
@@ -190,10 +190,10 @@ const MyRides = () => {
     try {
       let response;
       if (ride.status === 'pending') {
-        response = await axios.delete(`https://myapp-hu0i.onrender.com/api/request/requests/${ride.id}`);
+        response = await axios.delete(`http://10.0.2.2:5000/api/request/requests/${ride.id}`);
       } else {
         response = await axios.patch(
-          `https://myapp-hu0i.onrender.com/api/request/withdraw/${ride.rideId}`,
+          `http://10.0.2.2:5000/api/request/withdraw/${ride.rideId}`,
           { requestId: ride.id, seats: ride.seats, userEmail: user.email }
         );
       }

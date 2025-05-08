@@ -55,7 +55,7 @@ const AboutUsScreen = () => {
                         </View>
                         <View style={styles.entryRow}>
                             <Icon name="mail" size={18} color="#50ABE7" />
-                            <EmailLink email="charlie23@iitrpr.ac.in" />
+                            <EmailLink email="2022csb1119@iitrpr.ac.in" />
                         </View>
                     </View>
 
@@ -66,7 +66,7 @@ const AboutUsScreen = () => {
                         </View>
                         <View style={styles.entryRow}>
                             <Icon name="mail" size={18} color="#50ABE7" />
-                            <EmailLink email="charlie23@iitrpr.ac.in" />
+                            <EmailLink email="2022csb1117@iitrpr.ac.in" />
                         </View>
                     </View>
 
@@ -75,25 +75,10 @@ const AboutUsScreen = () => {
                     <View style={styles.card}>
                         <View style={styles.entryRow}>
                             <Icon name="person" size={18} color="#50ABE7" />
-                            <Text style={styles.name}>Priya Singh (2023 Batch)</Text>
+                            <Text style={styles.name}>2021 Batch RideMate_Carpooling_P18</Text>
                         </View>
-                        <View style={styles.entryRow}>
-                            <Icon name="mail" size={18} color="#50ABE7" />
-                            <EmailLink email="priya.singh@alumni.iitrpr.ac.in" />
-                        </View>
+                        
                     </View>
-
-                    <View style={styles.card}>
-                        <View style={styles.entryRow}>
-                            <Icon name="person" size={18} color="#50ABE7" />
-                            <Text style={styles.name}>Anuj Mehta (2023 Batch)</Text>
-                        </View>
-                        <View style={styles.entryRow}>
-                            <Icon name="mail" size={18} color="#50ABE7" />
-                            <EmailLink email="anuj.mehta@alumni.iitrpr.ac.in" />
-                        </View>
-                    </View>
-
                     <Text style={styles.sectionTitle}>Mentor</Text>
 
                     <View style={styles.card}>

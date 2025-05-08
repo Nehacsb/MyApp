@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await fetch(`https://myapp-hu0i.onrender.com/api/login`, {
+      const response = await fetch(`http://10.0.2.2:5000/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -71,7 +71,7 @@ export const AuthProvider = ({ children }) => {
     try {
       // Fetch allowed domains first
       console.log("email:",email);
-      const domainResponse = await fetch("https://myapp-hu0i.onrender.com/api/admin/authorized_domain");
+      const domainResponse = await fetch("http://10.0.2.2:5000/api/admin/authorized_domain");
       const allowedDomains = await domainResponse.json();
       console.log("authorised_emails:",allowedDomains);
   
@@ -87,7 +87,7 @@ export const AuthProvider = ({ children }) => {
       }
   
       // Proceed with signup
-      const response = await fetch("https://myapp-hu0i.onrender.com/api/signup", {
+      const response = await fetch("http://10.0.2.2:5000/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ firstName, lastName, email, password, phoneNumber, gender }),
@@ -115,7 +115,7 @@ export const AuthProvider = ({ children }) => {
 
   const verifyOTP = async (email, otp) => {
     try {
-      const response = await fetch("https://myapp-hu0i.onrender.com/api/verify-otp", {
+      const response = await fetch("http://10.0.2.2:5000/api/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, otp }),
@@ -166,7 +166,7 @@ export const AuthProvider = ({ children }) => {
   /////
   const forgotPassword = async (email) => {
     try {
-      const response = await fetch(`https://myapp-hu0i.onrender.com/api/forgot-password`, {
+      const response = await fetch(`http://10.0.2.2:5000/api/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -186,7 +186,7 @@ export const AuthProvider = ({ children }) => {
   
   const verifyResetOtp = async (email, otp) => {
     try {
-      const response = await fetch(`https://myapp-hu0i.onrender.com/api/verify-reset-otp`, {
+      const response = await fetch(`http://10.0.2.2:5000/api/verify-reset-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, otp }),
@@ -206,7 +206,7 @@ export const AuthProvider = ({ children }) => {
   
   const resetPassword = async (email, newPassword) => {
     try {
-      const response = await fetch(`https://myapp-hu0i.onrender.com/api/reset-password`, {
+      const response = await fetch(`http://10.0.2.2:5000/api/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, newPassword }),
@@ -227,7 +227,7 @@ export const AuthProvider = ({ children }) => {
   const updateProfile = async (email, updates) => {
     try {
       console.log("updates:",updates);
-      const response = await fetch(`https://myapp-hu0i.onrender.com/api/update-profile`, {
+      const response = await fetch(`http://10.0.2.2:5000/api/update-profile`, {
         method: "PUT",
         headers: { 
           "Content-Type": "application/json",

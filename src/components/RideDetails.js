@@ -12,7 +12,7 @@ const RideDetails = ({ route, navigation }) => {
     useEffect(() => {
         const fetchRideDetails = async () => {
             try {
-                const response = await axios.get(`https://myapp-hu0i.onrender.com/api/rides/${rideId}`);
+                const response = await axios.get(`http://10.0.2.2:5000/api/rides/${rideId}`);
                 if (response.data && response.data.data && response.data.data.rideId) {
                     const rideData = {
                         rideId: response.data.data.rideId,

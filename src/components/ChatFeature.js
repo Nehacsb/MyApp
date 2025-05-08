@@ -48,7 +48,7 @@ const ChatFeature = ({ route, navigation }) => {
         setNewMessage('');
 
         try {
-            await axios.post(`https://myapp-hu0i.onrender.com/api/chat/${rideId}`, messageToSend);
+            await axios.post(`http://10.0.2.2:5000/api/chat/${rideId}`, messageToSend);
             // don't manually add message now
             // it will come from fetchMessages()
         } catch (error) {
@@ -59,7 +59,7 @@ const ChatFeature = ({ route, navigation }) => {
 
     const fetchMessages = async () => {
         try {
-            const response = await axios.get(`https://myapp-hu0i.onrender.com/api/chat/${rideId}`);
+            const response = await axios.get(`http://10.0.2.2:5000/api/chat/${rideId}`);
 
             setMessages(prevMessages => {
                 const existingIds = new Set(prevMessages.map(msg => msg._id));

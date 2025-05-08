@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect, useRef } from "react";
-import { FlatList, View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, Animated, Alert, ScrollView, Modal, TouchableWithoutFeedback,KeyboardAvoidingView } from 'react-native';
+import { ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, Animated, Alert, Modal, TouchableWithoutFeedback, KeyboardAvoidingView } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import axios from 'axios';
@@ -50,10 +50,8 @@ const CreateRide = ({ navigation }) => {
 
   const vehicleTypes = ['4-Seater Cab', '7-steate Cab', 'Auto', 'Other'];
 
-  const sourceInputRef = useRef(null);
-  const destInputRef = useRef(null);
   const numberPlateInput = useRef(null);
-  const [inputLayouts, setInputLayouts] = useState({
+  const [setInputLayouts] = useState({
     source: { y: 0, height: 0 },
     destination: { y: 0, height: 0 }
   });
@@ -61,7 +59,7 @@ const CreateRide = ({ navigation }) => {
   useEffect(() => {
     const fetchLocations = async () => {
       try {
-        const res = await axios.get('https://myapp-hu0i.onrender.com/api/locations');
+        const res = await axios.get('http://10.0.2.2:5000/api/locations');
         const locations = Array.isArray(res.data)
           ? res.data.map(loc => loc.name)
           : (res.data.locations || []).map(loc => loc.name);
@@ -152,7 +150,7 @@ const CreateRide = ({ navigation }) => {
         otherInfo: otherInfo
       };
       console.log('Ride DDetails:', rideDetails);
-      const response = await axios.post('https://myapp-hu0i.onrender.com/api/rides', rideDetails);
+      const response = await axios.post('http://10.0.2.2:5000/api/rides', rideDetails);
       console.log('Ride created successfully:', response.data);
       Alert.alert('Success', 'Ride created successfully!');
       navigation.goBack();
@@ -208,7 +206,11 @@ const CreateRide = ({ navigation }) => {
       </View>
 
       {/* Main Form Container */}
-      <View style={styles.card}>
+      <ScrollView
+        contentContainerStyle={styles.card}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         <Text style={styles.cardTitle}>Route Details</Text>
 
         {/* Source Input */}
@@ -400,13 +402,13 @@ const CreateRide = ({ navigation }) => {
           style={styles.addDetailsButton}
           onPress={() => setShowDescriptionModal(true)}
         >
-          <Text style={styles.addDetailsButtonText}>+ Add Ride Details (Optional)</Text>
+          <Text style={styles.addDetailsButtonText}>Additional Details (Optional)</Text>
         </TouchableOpacity>
         {/* Create Ride Button */}
         <TouchableOpacity style={styles.createButton} onPress={handleSubmit}>
           <Text style={styles.createButtonText}>Create Ride →</Text>
         </TouchableOpacity>
-      </View>
+      </ScrollView>
 
       {/* Ride Description Modal */}
       <Modal
@@ -429,7 +431,7 @@ const CreateRide = ({ navigation }) => {
                   <View style={styles.descriptionModalContent}>
                     {/* Header */}
                     <View style={styles.modalHeader}>
-                      <Text style={styles.modalTitle}>Ride Details</Text>
+                      <Text style={styles.modalTitle}>Additional Details</Text>
                       <TouchableOpacity onPress={() => setShowDescriptionModal(false)}>
                         <MaterialIcons name="close" size={24} color="#000" />
                       </TouchableOpacity>
@@ -514,7 +516,7 @@ const CreateRide = ({ navigation }) => {
         onRequestClose={() => setShowVehicleDropdown(false)}
       >
         <TouchableWithoutFeedback onPress={() => setShowVehicleDropdown(false)}>
-          <View style={styles.modalOverlay}>
+          <View style={[styles.modalOverlay,{justifyContent: 'center', alignItems: 'center'}]}>
             <View style={styles.dropdownContainer}>
               {vehicleTypes.map((type) => (
                 <TouchableOpacity
@@ -623,7 +625,7 @@ const styles = StyleSheet.create({
   },
   datetimeText: {
     fontSize: 16,
-    color: COLORS.text.primary, 
+    color: COLORS.text.primary,
     textAlign: 'center',
   },
   subtitle: {
@@ -723,7 +725,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: COLORS.text.primary,
-    
   },
   suggestionsContainer: {
     position: 'absolute',
@@ -756,13 +757,13 @@ const styles = StyleSheet.create({
     color: COLORS.text.primary,
   },
   addDetailsButton: {
-    
+
     borderRadius: 8,
     padding: 12,
     alignItems: 'center',
     marginBottom: 16,
-    backgroundColor:COLORS.accent,
-    },
+    backgroundColor: COLORS.accent,
+  },
   addDetailsButtonText: {
     color: COLORS.text.primary,
     fontSize: 16,
@@ -797,6 +798,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
+    color:'#000',
   },
   vehicleDetailsContainer: {
     marginBottom: 20,
@@ -821,7 +823,7 @@ const styles = StyleSheet.create({
   vehicleTypeText: {
     fontSize: 16,
   },
- vehicleTypePlaceholder: {
+  vehicleTypePlaceholder: {
     fontSize: 16,
     color: '#888',
   },
@@ -861,10 +863,17 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   dropdownContainer: {
-    backgroundColor: '#FFF',
-    borderRadius: 8,
-    marginHorizontal: 40,
-    padding: 10,
+    // backgroundColor: '#FFF',
+    // borderRadius: 8,
+    // marginHorizontal: 40,
+    // padding: 10,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    elevation: 5,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    minWidth: '70%',
+    maxHeight: '60%',
   },
   dropdownItem: {
     padding: 15,

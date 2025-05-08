@@ -31,7 +31,7 @@ const FindRide = ({ navigation }) => {
   }, []);
   const fetchLocations = async () => {
     try {
-      const res = await axios.get('https://myapp-hu0i.onrender.com/api/locations');
+      const res = await axios.get('http://10.0.2.2:5000/api/locations');
       const locations = Array.isArray(res.data)
         ? res.data.map(loc => loc.name)
         : (res.data.locations || []).map(loc => loc.name);
@@ -88,7 +88,7 @@ const FindRide = ({ navigation }) => {
         return;
       }
       console.log("Fetching rides with params:", { from, to, minSeats });
-      let url = `https://myapp-hu0i.onrender.com/api/rides/search?source=${from}&destination=${to}`;
+      let url = `http://10.0.2.2:5000/api/rides/search?source=${from}&destination=${to}`;
       if (minSeats && !isNaN(minSeats)) {
         url += `&minSeats=${minSeats}`;
       }
@@ -134,7 +134,7 @@ const FindRide = ({ navigation }) => {
   const bookRide = async (rideId) => {
     try {
       const response = await axios.post(
-        'https://myapp-hu0i.onrender.com/api/request/book',
+        'http://10.0.2.2:5000/api/request/book',
         {
           rideId,
           userEmail: user.email,
@@ -319,9 +319,16 @@ const FindRide = ({ navigation }) => {
             {/* Route and Date */}
             <View style={styles.rideHeader}>
               <Text style={styles.rideRoute}>{item.source} → {item.destination}</Text>
-              <TouchableOpacity onPress={() => showRideDetails(item)}>
-                <MaterialIcons name="info" size={24} color="#50ABE7" />
-              </TouchableOpacity>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                {item.isFemaleOnly && (
+                  <View style={styles.femaleOnlyCircle}>
+                    <Text style={styles.femaleOnlyText}>F</Text>
+                  </View>
+                )}
+                <TouchableOpacity onPress={() => showRideDetails(item)}>
+                  <MaterialIcons name="info" size={24} color="#50ABE7" />
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* Time and Date - Swapped and bigger */}
@@ -401,6 +408,14 @@ const FindRide = ({ navigation }) => {
                 <>
                   {/* Created By Section */}
                   <View style={styles.sectionContainer}>
+                    {selectedRide.isFemaleOnly && (
+                      <View style={styles.sectionContainer}>
+                        <Text style={[styles.sectionTitle, { color: '#E91E63' }]}>👩 Female-Only Ride</Text>
+                        <Text style={styles.additionalText}>
+                          This ride is reserved for female passengers only.
+                        </Text>
+                      </View>
+                    )}
                     <Text style={styles.sectionTitle}>Created By</Text>
                     <View style={styles.creatorContainer}>
                       <Text style={styles.creatorName}>
@@ -761,7 +776,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#EEE',
     paddingBottom: 4,
   },
-  creatorContainer: { 
+  creatorContainer: {
     marginTop: 5,
   },
   creatorName: {
@@ -823,5 +838,20 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     paddingHorizontal: 5,
   },
+  femaleOnlyCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 15,
+    backgroundColor: 'rgb(241, 46, 212)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  femaleOnlyText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  
 });
 export default FindRide;

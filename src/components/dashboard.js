@@ -50,7 +50,7 @@ const Dashboard = ({ navigation }) => {
 
   const fetchSavedCabs = async () => {
     try {
-      const res = await axios.get(`https://myapp-hu0i.onrender.com/api/saved-cabs/${user.email}`);
+      const res = await axios.get(`http://10.0.2.2:5000/api/saved-cabs/${user.email}`);
       setSavedCabs(res.data);
     } catch (err) {
       console.error('Failed to fetch saved cabs:', err);
@@ -59,7 +59,7 @@ const Dashboard = ({ navigation }) => {
 
   const handleDeleteCab = async (cabId) => {
     try {
-      await axios.delete(`https://myapp-hu0i.onrender.com/api/saved-cabs/${cabId}`);
+      await axios.delete(`http://10.0.2.2:5000/api/saved-cabs/${cabId}`);
       setSavedCabs((prevCabs) => prevCabs.filter((cab) => cab._id !== cabId));
     } catch (err) {
       console.error('Failed to delete cab:', err);
@@ -263,7 +263,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    padding: 12,
+    paddingTop: 12,
+    paddingBottom:12,
   },
   header: {
     flexDirection: 'row',
@@ -281,12 +282,12 @@ const styles = StyleSheet.create({
   },
   banner: {
     backgroundColor: '#6cbde9',
-    borderRadius: 12,
     padding: 14,
-    marginVertical: 8,
+    marginVertical: 0,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    width: '100%',
   },
   bannerText: {
     fontSize: 16,
