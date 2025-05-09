@@ -17,46 +17,26 @@ router.patch('/rides/withdraw-creator/:rideId', async (req, res) => {
       return res.status(404).json({ message: 'Ride not found' });
     }
 
-    // Verify the user is the creator
+    // Check if the user is the creator
     if (ride.email !== userEmail) {
       return res.status(403).json({ message: 'Only the ride creator can withdraw' });
     }
 
-    // Remove creator from passengers
-    const user = await User.findOne({ email: userEmail });
-    ride.passengers = ride.passengers.filter(
-      passengerId => passengerId.toString() !== user._id.toString()
-    );
-
-    // Check if there are any passengers left
-    if (ride.passengers.length === 0) {
-      // No passengers left - delete the ride
-      await Ride.findByIdAndDelete(req.params.rideId);
-      await Request.deleteMany({ ride: req.params.rideId });
-      return res.json({
-        message: 'Ride cancelled as there were no passengers left',
-        rideDeleted: true
-      });
-    } else {
-      // There are still passengers - update ride
-      await ride.save();
-      // TODO: Notify remaining passengers in chat
-
-      const systemMessage = new Chat({
-        rideId: req.params.rideId,
-        senderId: null, // Indicates system message
-        senderName: 'System',
-        content: `${user.firstName} ${user.lastName} withdrew from the ride`,
-        timestamp: new Date(),
-        isSystemMessage: true
-      });
-      await systemMessage.save();
-
-      return res.json({
-        message: 'Creator withdrawn from ride',
-        rideDeleted: false
+    // If there are still passengers, prevent withdrawal
+    if (ride.passengers.length > 1) {
+      return res.status(400).json({
+        message: 'You cannot withdraw because passengers have already joined your ride.'
       });
     }
+
+    // Proceed with withdrawal if no passengers
+    await Ride.findByIdAndDelete(req.params.rideId);
+    await Request.deleteMany({ ride: req.params.rideId });
+
+    return res.json({
+      message: 'Ride cancelled successfully',
+      rideDeleted: true
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
