@@ -318,17 +318,27 @@ const FindRide = ({ navigation }) => {
           <View style={styles.rideCard}>
             {/* Route and Date */}
             <View style={styles.rideHeader}>
-              <Text style={styles.rideRoute}>{item.source} → {item.destination}</Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                {item.isFemaleOnly && (
-                  <View style={styles.femaleOnlyCircle}>
-                    <Text style={styles.femaleOnlyText}>F</Text>
-                  </View>
-                )}
-                <TouchableOpacity onPress={() => showRideDetails(item)}>
-                  <MaterialIcons name="info" size={24} color="#50ABE7" />
-                </TouchableOpacity>
-              </View>
+              {/* Scrollable route */}
+    <ScrollView 
+      horizontal 
+      showsHorizontalScrollIndicator={false} 
+      style={styles.routeScroll}
+    >
+      <Text style={styles.rideRoute}>
+        {item.source} → {item.destination}
+      </Text>
+    </ScrollView>
+               {/* Icons */}
+    <View style={styles.rideIcons}>
+      {item.isFemaleOnly && (
+        <View style={styles.femaleOnlyCircle}>
+          <Text style={styles.femaleOnlyText}>F</Text>
+        </View>
+      )}
+      <TouchableOpacity onPress={() => showRideDetails(item)}>
+        <MaterialIcons name="info" size={24} color="#50ABE7" />
+      </TouchableOpacity>
+    </View>
             </View>
 
             {/* Time and Date - Swapped and bigger */}
@@ -539,6 +549,11 @@ const styles = StyleSheet.create({
     padding: 8,
     marginBottom: 9,
   },
+  rideIcons: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 8,
+},
   searchInput: {
     flex: 1,
     fontSize: 16,
@@ -590,6 +605,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 12,
   },
+  routeScroll: {
+  maxWidth: '70%', // or any width that fits your layout
+},
   rideRoute: {
     fontSize: 18,
     fontWeight: 'bold',
